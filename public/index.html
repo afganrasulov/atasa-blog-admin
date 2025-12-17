@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
-    .loading { opacity: 0.5; pointer-events: none; }
+    .tab-active { border-color: #2563eb; color: #2563eb; background-color: #eff6ff; }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
@@ -29,71 +29,102 @@
             <p class="text-xs text-slate-500">Blog yazılarını yönet</p>
           </div>
         </div>
-        <button onclick="loadPosts()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-          </svg>
-          Yenile
-        </button>
+        <div class="flex items-center gap-4">
+          <!-- Autopilot Toggle -->
+          <div class="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-lg border border-slate-200">
+            <span class="text-sm font-medium text-slate-600">Otopilot</span>
+            <button id="autopilotToggle" onclick="toggleAutopilot()" class="relative w-12 h-6 rounded-full transition-colors duration-300 bg-slate-300">
+              <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm"></span>
+            </button>
+          </div>
+          <button onclick="loadPosts()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Yenile
+          </button>
+        </div>
       </div>
     </header>
 
     <!-- Main Content -->
     <main class="max-w-6xl mx-auto px-4 py-8">
       <!-- Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
             </div>
             <div>
-              <p class="text-2xl font-bold text-slate-900" id="totalPosts">-</p>
-              <p class="text-sm text-slate-500">Toplam Yazı</p>
+              <p class="text-2xl font-bold text-slate-900" id="draftCount">-</p>
+              <p class="text-xs text-slate-500">Taslak</p>
             </div>
           </div>
         </div>
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
             </div>
             <div>
-              <p class="text-2xl font-bold text-slate-900" id="apiStatus">-</p>
-              <p class="text-sm text-slate-500">API Durumu</p>
+              <p class="text-2xl font-bold text-slate-900" id="publishedCount">-</p>
+              <p class="text-xs text-slate-500">Yayında</p>
             </div>
           </div>
         </div>
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
             </div>
             <div>
-              <p class="text-2xl font-bold text-slate-900" id="lastUpdate">-</p>
-              <p class="text-sm text-slate-500">Son Güncelleme</p>
+              <p class="text-2xl font-bold text-slate-900" id="scheduledCount">-</p>
+              <p class="text-xs text-slate-500">Zamanlanmış</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+              </svg>
+            </div>
+            <div>
+              <p class="text-2xl font-bold text-slate-900" id="totalCount">-</p>
+              <p class="text-xs text-slate-500">Toplam</p>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Tabs -->
+      <div class="flex gap-2 mb-6">
+        <button onclick="setFilter('all')" id="tab-all" class="px-4 py-2 rounded-lg text-sm font-medium border-2 border-transparent transition-all tab-active">
+          Tümü
+        </button>
+        <button onclick="setFilter('draft')" id="tab-draft" class="px-4 py-2 rounded-lg text-sm font-medium border-2 border-transparent transition-all hover:bg-slate-100">
+          Taslaklar
+        </button>
+        <button onclick="setFilter('published')" id="tab-published" class="px-4 py-2 rounded-lg text-sm font-medium border-2 border-transparent transition-all hover:bg-slate-100">
+          Yayında
+        </button>
+        <button onclick="setFilter('scheduled')" id="tab-scheduled" class="px-4 py-2 rounded-lg text-sm font-medium border-2 border-transparent transition-all hover:bg-slate-100">
+          Zamanlanmış
+        </button>
+      </div>
+
       <!-- Posts List -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-slate-900">Blog Yazıları</h2>
-          <span class="text-sm text-slate-500" id="postCount"></span>
-        </div>
         <div id="postsList" class="divide-y divide-slate-100">
           <div class="p-8 text-center text-slate-500">
-            <svg class="w-12 h-12 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
             Yükleniyor...
           </div>
         </div>
@@ -113,7 +144,7 @@
         </button>
       </div>
       <div class="p-6 overflow-y-auto flex-1">
-        <form id="editForm" onsubmit="savePost(event)">
+        <form id="editForm">
           <input type="hidden" id="editId">
           <div class="space-y-4">
             <div>
@@ -130,7 +161,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">İçerik (Markdown)</label>
-              <textarea id="editContent" rows="12" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-sm" required></textarea>
+              <textarea id="editContent" rows="10" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-sm" required></textarea>
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Görsel URL</label>
@@ -141,12 +172,32 @@
       </div>
       <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
         <button onclick="closeEditModal()" class="px-4 py-2 text-slate-700 hover:bg-slate-200 rounded-lg font-medium transition-colors">İptal</button>
-        <button onclick="savePost(event)" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">Kaydet</button>
+        <button onclick="savePost()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">Kaydet</button>
       </div>
     </div>
   </div>
 
-  <!-- Delete Confirmation Modal -->
+  <!-- Schedule Modal -->
+  <div id="scheduleModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+      <div class="px-6 py-4 border-b border-slate-200">
+        <h3 class="text-lg font-semibold text-slate-900">Yayın Zamanla</h3>
+      </div>
+      <div class="p-6">
+        <input type="hidden" id="scheduleId">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Yayın Tarihi ve Saati</label>
+          <input type="datetime-local" id="scheduleDateTime" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
+        <button onclick="closeScheduleModal()" class="px-4 py-2 text-slate-700 hover:bg-slate-200 rounded-lg font-medium transition-colors">İptal</button>
+        <button onclick="confirmSchedule()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">Zamanla</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
   <div id="deleteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
       <div class="p-6 text-center">
@@ -175,104 +226,256 @@
   <script>
     const API_URL = 'https://atasa-blog-api-production-22a4.up.railway.app';
     let posts = [];
+    let currentFilter = 'all';
     let deletePostId = null;
+    let autopilotEnabled = false;
 
-    // Load posts on page load
-    document.addEventListener('DOMContentLoaded', loadPosts);
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSettings();
+      loadPosts();
+    });
+
+    async function loadSettings() {
+      try {
+        const response = await fetch(`${API_URL}/api/settings`);
+        const settings = await response.json();
+        autopilotEnabled = settings.autopilot || false;
+        updateAutopilotUI();
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    }
+
+    function updateAutopilotUI() {
+      const toggle = document.getElementById('autopilotToggle');
+      const knob = toggle.querySelector('span');
+      if (autopilotEnabled) {
+        toggle.classList.remove('bg-slate-300');
+        toggle.classList.add('bg-green-500');
+        knob.classList.add('translate-x-6');
+      } else {
+        toggle.classList.add('bg-slate-300');
+        toggle.classList.remove('bg-green-500');
+        knob.classList.remove('translate-x-6');
+      }
+    }
+
+    async function toggleAutopilot() {
+      try {
+        autopilotEnabled = !autopilotEnabled;
+        updateAutopilotUI();
+        
+        await fetch(`${API_URL}/api/settings`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ autopilot: autopilotEnabled })
+        });
+        
+        showToast(autopilotEnabled ? 'Otopilot açıldı - Yeni yazılar otomatik yayınlanacak' : 'Otopilot kapatıldı - Yeni yazılar taslak olarak kaydedilecek');
+      } catch (error) {
+        console.error('Error toggling autopilot:', error);
+        autopilotEnabled = !autopilotEnabled;
+        updateAutopilotUI();
+      }
+    }
 
     async function loadPosts() {
       const postsList = document.getElementById('postsList');
-      postsList.innerHTML = `
-        <div class="p-8 text-center text-slate-500">
-          <svg class="w-12 h-12 mx-auto mb-4 text-slate-300 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-          </svg>
-          Yükleniyor...
-        </div>
-      `;
+      postsList.innerHTML = '<div class="p-8 text-center text-slate-500">Yükleniyor...</div>';
 
       try {
-        const response = await fetch(`${API_URL}/api/posts`);
+        const response = await fetch(`${API_URL}/api/posts/all`);
         posts = await response.json();
         
-        document.getElementById('totalPosts').textContent = posts.length;
-        document.getElementById('apiStatus').textContent = 'Aktif';
-        document.getElementById('apiStatus').className = 'text-2xl font-bold text-green-600';
-        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('tr-TR');
-        document.getElementById('postCount').textContent = `${posts.length} yazı`;
+        const drafts = posts.filter(p => p.status === 'draft');
+        const published = posts.filter(p => p.status === 'published');
+        const scheduled = posts.filter(p => p.status === 'scheduled');
+        
+        document.getElementById('draftCount').textContent = drafts.length;
+        document.getElementById('publishedCount').textContent = published.length;
+        document.getElementById('scheduledCount').textContent = scheduled.length;
+        document.getElementById('totalCount').textContent = posts.length;
 
-        if (posts.length === 0) {
-          postsList.innerHTML = `
-            <div class="p-8 text-center text-slate-500">
-              <svg class="w-12 h-12 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-              Henüz blog yazısı yok
-            </div>
-          `;
-          return;
-        }
+        renderPosts();
+      } catch (error) {
+        console.error('Error loading posts:', error);
+        postsList.innerHTML = '<div class="p-8 text-center text-red-500">API\'ye bağlanılamadı</div>';
+      }
+    }
 
-        postsList.innerHTML = posts.map(post => `
-          <div class="p-4 hover:bg-slate-50 transition-colors">
-            <div class="flex items-start gap-4">
-              <img src="${post.thumbnail}" alt="" class="w-20 h-20 rounded-xl object-cover shrink-0">
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 class="font-semibold text-slate-900 mb-1 line-clamp-1">${post.title}</h3>
-                    <p class="text-sm text-slate-500 line-clamp-2 mb-2">${post.excerpt}</p>
-                    <div class="flex items-center gap-3 text-xs text-slate-400">
-                      <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded-md font-medium">${post.category}</span>
-                      <span>${post.date}</span>
-                      <span>${post.readTime}</span>
-                      <span class="text-slate-300">ID: ${post.id}</span>
-                    </div>
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('[id^="tab-"]').forEach(tab => {
+        tab.classList.remove('tab-active');
+        tab.classList.add('hover:bg-slate-100');
+      });
+      document.getElementById(`tab-${filter}`).classList.add('tab-active');
+      document.getElementById(`tab-${filter}`).classList.remove('hover:bg-slate-100');
+      renderPosts();
+    }
+
+    function renderPosts() {
+      const postsList = document.getElementById('postsList');
+      let filtered = posts;
+      
+      if (currentFilter !== 'all') {
+        filtered = posts.filter(p => p.status === currentFilter);
+      }
+
+      if (filtered.length === 0) {
+        postsList.innerHTML = '<div class="p-8 text-center text-slate-500">Bu kategoride yazı yok</div>';
+        return;
+      }
+
+      postsList.innerHTML = filtered.map(post => {
+        const statusBadge = getStatusBadge(post.status);
+        const scheduledInfo = post.status === 'scheduled' && post.scheduledAt 
+          ? `<span class="text-blue-600 text-xs ml-2">${new Date(post.scheduledAt).toLocaleString('tr-TR')}</span>` 
+          : '';
+        
+        return `
+        <div class="p-4 hover:bg-slate-50 transition-colors">
+          <div class="flex items-start gap-4">
+            <img src="${post.thumbnail}" alt="" class="w-20 h-20 rounded-xl object-cover shrink-0">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-2 mb-1">
+                    ${statusBadge}
+                    ${scheduledInfo}
                   </div>
-                  <div class="flex items-center gap-2 shrink-0">
-                    <button onclick="openEditModal('${post.id}')" class="p-2 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors" title="Düzenle">
+                  <h3 class="font-semibold text-slate-900 mb-1 line-clamp-1">${post.title}</h3>
+                  <p class="text-sm text-slate-500 line-clamp-1 mb-2">${post.excerpt}</p>
+                  <div class="flex items-center gap-3 text-xs text-slate-400">
+                    <span class="px-2 py-1 bg-slate-100 rounded-md">${post.category}</span>
+                    <span>${post.date}</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  ${post.status === 'draft' ? `
+                    <button onclick="publishPost('${post.id}')" class="p-2 hover:bg-green-100 text-green-600 rounded-lg transition-colors" title="Yayınla">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                       </svg>
                     </button>
-                    <button onclick="openDeleteModal('${post.id}', '${post.title.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')" class="p-2 hover:bg-red-100 text-red-600 rounded-lg transition-colors" title="Sil">
+                    <button onclick="openScheduleModal('${post.id}')" class="p-2 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors" title="Zamanla">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                       </svg>
                     </button>
-                  </div>
+                  ` : ''}
+                  ${post.status === 'published' ? `
+                    <button onclick="unpublishPost('${post.id}')" class="p-2 hover:bg-yellow-100 text-yellow-600 rounded-lg transition-colors" title="Taslağa Al">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                      </svg>
+                    </button>
+                  ` : ''}
+                  ${post.status === 'scheduled' ? `
+                    <button onclick="publishPost('${post.id}')" class="p-2 hover:bg-green-100 text-green-600 rounded-lg transition-colors" title="Şimdi Yayınla">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </button>
+                    <button onclick="unpublishPost('${post.id}')" class="p-2 hover:bg-yellow-100 text-yellow-600 rounded-lg transition-colors" title="İptal Et">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                  ` : ''}
+                  <button onclick="openEditModal('${post.id}')" class="p-2 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors" title="Düzenle">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                  </button>
+                  <button onclick="openDeleteModal('${post.id}', '${post.title.replace(/'/g, "\\'")}')" class="p-2 hover:bg-red-100 text-red-600 rounded-lg transition-colors" title="Sil">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-        `).join('');
+        </div>
+      `}).join('');
+    }
 
+    function getStatusBadge(status) {
+      const badges = {
+        draft: '<span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">Taslak</span>',
+        published: '<span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Yayında</span>',
+        scheduled: '<span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">Zamanlanmış</span>'
+      };
+      return badges[status] || badges.draft;
+    }
+
+    async function publishPost(id) {
+      try {
+        await fetch(`${API_URL}/api/posts/${id}/publish`, { method: 'PUT' });
+        showToast('Yazı yayınlandı');
+        loadPosts();
       } catch (error) {
-        console.error('Error loading posts:', error);
-        document.getElementById('apiStatus').textContent = 'Hata';
-        document.getElementById('apiStatus').className = 'text-2xl font-bold text-red-600';
-        postsList.innerHTML = `
-          <div class="p-8 text-center text-red-500">
-            <svg class="w-12 h-12 mx-auto mb-4 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            API'ye bağlanılamadı
-          </div>
-        `;
+        showToast('Hata oluştu');
       }
     }
 
-    function openEditModal(postId) {
-      const post = posts.find(p => p.id === postId);
-      if (!post) return;
+    async function unpublishPost(id) {
+      try {
+        await fetch(`${API_URL}/api/posts/${id}/unpublish`, { method: 'PUT' });
+        showToast('Yazı taslağa alındı');
+        loadPosts();
+      } catch (error) {
+        showToast('Hata oluştu');
+      }
+    }
 
+    function openScheduleModal(id) {
+      document.getElementById('scheduleId').value = id;
+      const now = new Date();
+      now.setHours(now.getHours() + 1);
+      document.getElementById('scheduleDateTime').value = now.toISOString().slice(0, 16);
+      document.getElementById('scheduleModal').classList.remove('hidden');
+      document.getElementById('scheduleModal').classList.add('flex');
+    }
+
+    function closeScheduleModal() {
+      document.getElementById('scheduleModal').classList.add('hidden');
+      document.getElementById('scheduleModal').classList.remove('flex');
+    }
+
+    async function confirmSchedule() {
+      const id = document.getElementById('scheduleId').value;
+      const scheduledAt = document.getElementById('scheduleDateTime').value;
+      
+      if (!scheduledAt) {
+        showToast('Tarih seçin');
+        return;
+      }
+
+      try {
+        await fetch(`${API_URL}/api/posts/${id}/schedule`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scheduledAt: new Date(scheduledAt).toISOString() })
+        });
+        showToast('Yazı zamanlandı');
+        closeScheduleModal();
+        loadPosts();
+      } catch (error) {
+        showToast('Hata oluştu');
+      }
+    }
+
+    function openEditModal(id) {
+      const post = posts.find(p => p.id === id);
+      if (!post) return;
       document.getElementById('editId').value = post.id;
       document.getElementById('editTitle').value = post.title;
       document.getElementById('editCategory').value = post.category;
       document.getElementById('editExcerpt').value = post.excerpt;
       document.getElementById('editContent').value = post.content;
       document.getElementById('editThumbnail').value = post.thumbnail;
-
       document.getElementById('editModal').classList.remove('hidden');
       document.getElementById('editModal').classList.add('flex');
     }
@@ -282,9 +485,7 @@
       document.getElementById('editModal').classList.remove('flex');
     }
 
-    async function savePost(event) {
-      event.preventDefault();
-      
+    async function savePost() {
       const id = document.getElementById('editId').value;
       const data = {
         title: document.getElementById('editTitle').value,
@@ -295,28 +496,22 @@
       };
 
       try {
-        const response = await fetch(`${API_URL}/api/posts/${id}`, {
+        await fetch(`${API_URL}/api/posts/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
-
-        if (response.ok) {
-          showToast('Blog yazısı güncellendi');
-          closeEditModal();
-          loadPosts();
-        } else {
-          showToast('Güncelleme başarısız');
-        }
+        showToast('Yazı güncellendi');
+        closeEditModal();
+        loadPosts();
       } catch (error) {
-        console.error('Error updating post:', error);
-        showToast('Bir hata oluştu');
+        showToast('Hata oluştu');
       }
     }
 
-    function openDeleteModal(postId, postTitle) {
-      deletePostId = postId;
-      document.getElementById('deletePostTitle').textContent = `"${postTitle}" silinecek. Bu işlem geri alınamaz.`;
+    function openDeleteModal(id, title) {
+      deletePostId = id;
+      document.getElementById('deletePostTitle').textContent = `"${title}" silinecek.`;
       document.getElementById('deleteModal').classList.remove('hidden');
       document.getElementById('deleteModal').classList.add('flex');
     }
@@ -329,22 +524,13 @@
 
     async function confirmDelete() {
       if (!deletePostId) return;
-
       try {
-        const response = await fetch(`${API_URL}/api/posts/${deletePostId}`, {
-          method: 'DELETE'
-        });
-
-        if (response.ok) {
-          showToast('Blog yazısı silindi');
-          closeDeleteModal();
-          loadPosts();
-        } else {
-          showToast('Silme başarısız');
-        }
+        await fetch(`${API_URL}/api/posts/${deletePostId}`, { method: 'DELETE' });
+        showToast('Yazı silindi');
+        closeDeleteModal();
+        loadPosts();
       } catch (error) {
-        console.error('Error deleting post:', error);
-        showToast('Bir hata oluştu');
+        showToast('Hata oluştu');
       }
     }
 
@@ -352,28 +538,15 @@
       const toast = document.getElementById('toast');
       document.getElementById('toastMessage').textContent = message;
       toast.classList.remove('translate-y-20', 'opacity-0');
-      toast.classList.add('translate-y-0', 'opacity-100');
-      
-      setTimeout(() => {
-        toast.classList.add('translate-y-20', 'opacity-0');
-        toast.classList.remove('translate-y-0', 'opacity-100');
-      }, 3000);
+      setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
     }
 
-    // Close modals on escape key
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
         closeEditModal();
+        closeScheduleModal();
         closeDeleteModal();
       }
-    });
-
-    // Close modals on backdrop click
-    document.getElementById('editModal').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('editModal')) closeEditModal();
-    });
-    document.getElementById('deleteModal').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('deleteModal')) closeDeleteModal();
     });
   </script>
 </body>
