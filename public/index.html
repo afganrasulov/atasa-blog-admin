@@ -10,6 +10,9 @@
     body { font-family: system-ui, sans-serif; }
     .tab-active { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
     .page-active { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .animate-spin { animation: spin 1s linear infinite; }
+    .status-badge { position: absolute; top: 8px; right: 8px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
@@ -68,18 +71,24 @@
 
     <!-- YouTube Page -->
     <main id="youtubePage" class="max-w-7xl mx-auto px-4 py-8 hidden">
-      <div class="flex justify-between mb-6">
+      <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">🎬 YouTube Videoları</h2>
-        <button onclick="fetchAndSaveVideos('video')" class="px-4 py-2 bg-red-600 text-white rounded-lg">🔄 Güncelle</button>
+        <div class="flex gap-2">
+          <button onclick="transcribeAll('video')" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm">🎙️ Tümünü Deşifre Et</button>
+          <button onclick="fetchAndSaveVideos('video')" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm">🔄 Güncelle</button>
+        </div>
       </div>
       <div id="youtubeVideosList" class="grid grid-cols-3 gap-6"></div>
     </main>
 
     <!-- Shorts Page -->
     <main id="shortsPage" class="max-w-7xl mx-auto px-4 py-8 hidden">
-      <div class="flex justify-between mb-6">
+      <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">📱 Shorts</h2>
-        <button onclick="fetchAndSaveVideos('short')" class="px-4 py-2 bg-pink-600 text-white rounded-lg">🔄 Güncelle</button>
+        <div class="flex gap-2">
+          <button onclick="transcribeAll('short')" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm">🎙️ Tümünü Deşifre Et</button>
+          <button onclick="fetchAndSaveVideos('short')" class="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm">🔄 Güncelle</button>
+        </div>
       </div>
       <div id="shortsVideosList" class="grid grid-cols-4 gap-4"></div>
     </main>
@@ -142,12 +151,18 @@
       <div class="p-4 overflow-y-auto flex-1">
         <div class="flex gap-4 mb-4">
           <img id="modalThumb" class="w-40 h-24 object-cover rounded-lg">
-          <div><h4 id="modalTitle" class="font-semibold"></h4><p id="modalDate" class="text-sm text-slate-500"></p><span id="modalTranscriptBadge"></span></div>
+          <div>
+            <h4 id="modalTitle" class="font-semibold"></h4>
+            <p id="modalDate" class="text-sm text-slate-500"></p>
+            <div id="modalStatusBadges" class="flex gap-2 mt-2"></div>
+          </div>
         </div>
         <div class="mb-4">
-          <div class="flex justify-between mb-2">
+          <div class="flex justify-between items-center mb-2">
             <label class="text-sm font-medium">Transkript</label>
-            <button onclick="startTranscription()" id="transcribeBtn" class="px-3 py-1 bg-purple-600 text-white rounded text-sm">🎙️ Deşifre Et</button>
+            <div class="flex gap-2">
+              <button onclick="startBackgroundTranscription()" id="transcribeBtn" class="px-3 py-1 bg-purple-600 text-white rounded text-sm">🎙️ Deşifre Et</button>
+            </div>
           </div>
           <textarea id="videoTranscript" rows="6" class="w-full px-3 py-2 border rounded-lg font-mono text-sm" placeholder="Transkript buraya gelecek..."></textarea>
           <p id="transcriptStatus" class="text-xs mt-1"></p>
@@ -178,7 +193,7 @@
     </div>
   </div>
 
-  <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-6 py-3 rounded-xl translate-y-20 opacity-0 transition-all"></div>
+  <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-6 py-3 rounded-xl translate-y-20 opacity-0 transition-all z-50"></div>
   <div id="loading" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
     <div class="bg-white rounded-xl p-8 text-center">
       <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -194,6 +209,7 @@
     let posts = [], currentFilter = 'all', currentUser = null, currentVideo = null, autopilot = false;
     let cachedVideos = { video: [], short: [] };
     let settings = { youtubeApiKey: '', openaiApiKey: '', assemblyaiApiKey: '', channelId: '' };
+    let statusCheckInterval = null;
 
     window.onload = () => {
       google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleLogin });
@@ -213,6 +229,8 @@
       document.getElementById('mainApp').classList.remove('hidden');
       if (currentUser?.picture) document.getElementById('userAvatar').src = currentUser.picture;
       loadSettings(); loadPosts(); loadVideos(); loadUsers();
+      // Her 10 saniyede bir durumu kontrol et
+      statusCheckInterval = setInterval(checkVideoStatuses, 10000);
     }
 
     async function handleLogin(response) {
@@ -229,7 +247,13 @@
       }
     }
 
-    function logout() { currentUser = null; localStorage.removeItem('adminUser'); google.accounts.id.disableAutoSelect(); showLogin(); }
+    function logout() { 
+      currentUser = null; 
+      localStorage.removeItem('adminUser'); 
+      google.accounts.id.disableAutoSelect(); 
+      if (statusCheckInterval) clearInterval(statusCheckInterval);
+      showLogin(); 
+    }
 
     function loadSettings() {
       settings.youtubeApiKey = localStorage.getItem('youtubeApiKey') || '';
@@ -271,6 +295,7 @@
       });
     }
 
+    // Posts
     async function loadPosts() {
       const res = await fetch(`${API}/api/posts/all`);
       posts = await res.json();
@@ -333,6 +358,7 @@
       closeModal('edit'); loadPosts(); toast('Güncellendi');
     }
 
+    // Videos
     async function loadVideos() {
       try {
         const [v, s] = await Promise.all([fetch(`${API}/api/youtube/videos?type=video`), fetch(`${API}/api/youtube/videos?type=short`)]);
@@ -340,6 +366,48 @@
         cachedVideos.short = await s.json();
         renderVideos('video'); renderVideos('short');
       } catch (e) { console.error(e); }
+    }
+
+    // Durum kontrolü için periyodik çağrı
+    async function checkVideoStatuses() {
+      const processingVideos = [...cachedVideos.video, ...cachedVideos.short].filter(v => 
+        v.transcript_status === 'processing' || v.audio_status === 'processing'
+      );
+      
+      if (processingVideos.length > 0) {
+        await loadVideos();
+        // Modal açıksa ve video güncellenmiştisse, modal'ı güncelle
+        if (currentVideo) {
+          const updated = [...cachedVideos.video, ...cachedVideos.short].find(v => v.id === currentVideo.id);
+          if (updated && updated.transcript !== currentVideo.transcript) {
+            currentVideo = updated;
+            document.getElementById('videoTranscript').value = updated.transcript || '';
+            updateModalBadges();
+          }
+        }
+      }
+    }
+
+    function getStatusBadge(video) {
+      const badges = [];
+      
+      // Audio status
+      if (video.audio_status === 'completed') {
+        badges.push('<span class="status-badge bg-blue-500 text-white">🎵 MP3</span>');
+      } else if (video.audio_status === 'processing') {
+        badges.push('<span class="status-badge bg-blue-400 text-white"><span class="inline-block animate-spin">⏳</span> MP3</span>');
+      }
+      
+      // Transcript status
+      if (video.transcript_status === 'completed' && video.transcript) {
+        badges.push('<span class="status-badge bg-green-500 text-white" style="right: 50px;">✅ Deşifre</span>');
+      } else if (video.transcript_status === 'processing') {
+        badges.push('<span class="status-badge bg-purple-500 text-white" style="right: 50px;"><span class="inline-block animate-spin">⏳</span> Deşifre</span>');
+      } else if (video.transcript_status === 'failed') {
+        badges.push('<span class="status-badge bg-red-500 text-white" style="right: 50px;">❌ Hata</span>');
+      }
+      
+      return badges.join('');
     }
 
     function renderVideos(type) {
@@ -350,7 +418,7 @@
         <div onclick="openVideoModal('${v.id}')" class="bg-white rounded-xl border overflow-hidden cursor-pointer hover:shadow-lg transition-all">
           <div class="relative">
             <img src="${v.thumbnail}" class="w-full ${type === 'short' ? 'aspect-[9/16]' : 'aspect-video'} object-cover">
-            ${v.transcript ? '<span class="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded">✓</span>' : ''}
+            ${getStatusBadge(v)}
           </div>
           <div class="p-3"><h3 class="font-medium line-clamp-2 text-sm">${v.title}</h3></div>
         </div>
@@ -381,64 +449,114 @@
 
     function parseDuration(d) { const m = d.match(/PT(\d+H)?(\d+M)?(\d+S)?/); return (parseInt(m[1]) || 0) * 3600 + (parseInt(m[2]) || 0) * 60 + (parseInt(m[3]) || 0); }
 
+    // Tüm videoları deşifre et
+    async function transcribeAll(type) {
+      if (!settings.assemblyaiApiKey) { toast('AssemblyAI API Key gerekli!'); switchPage('settings'); return; }
+      
+      const videos = cachedVideos[type].filter(v => !v.transcript && v.transcript_status !== 'processing');
+      if (!videos.length) { toast('Deşifre edilecek video yok'); return; }
+      
+      toast(`${videos.length} video deşifre edilmeye başlıyor...`);
+      
+      for (const video of videos) {
+        try {
+          await fetch(`${API}/api/youtube/videos/${video.id}/transcribe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apiKey: settings.assemblyaiApiKey })
+          });
+        } catch (e) { console.error('Transcribe error:', e); }
+      }
+      
+      loadVideos();
+      toast('Arka planda işlem başladı ✓');
+    }
+
+    function updateModalBadges() {
+      if (!currentVideo) return;
+      const badges = [];
+      
+      if (currentVideo.audio_status === 'completed') {
+        badges.push('<span class="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">🎵 MP3 Hazır</span>');
+      } else if (currentVideo.audio_status === 'processing') {
+        badges.push('<span class="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700"><span class="inline-block animate-spin">⏳</span> MP3 İşleniyor</span>');
+      }
+      
+      if (currentVideo.transcript_status === 'completed' && currentVideo.transcript) {
+        badges.push('<span class="px-2 py-1 text-xs rounded bg-green-100 text-green-700">✅ Deşifre Tamam</span>');
+      } else if (currentVideo.transcript_status === 'processing') {
+        badges.push('<span class="px-2 py-1 text-xs rounded bg-purple-100 text-purple-700"><span class="inline-block animate-spin">⏳</span> Deşifre Ediliyor</span>');
+      } else if (currentVideo.transcript_status === 'failed') {
+        badges.push('<span class="px-2 py-1 text-xs rounded bg-red-100 text-red-700">❌ Hata</span>');
+      }
+      
+      document.getElementById('modalStatusBadges').innerHTML = badges.join('');
+    }
+
     async function openVideoModal(id) {
       currentVideo = cachedVideos.video.find(v => v.id === id) || cachedVideos.short.find(v => v.id === id);
       if (!currentVideo) return;
+      
       document.getElementById('modalThumb').src = currentVideo.thumbnail;
       document.getElementById('modalTitle').textContent = currentVideo.title;
       document.getElementById('modalDate').textContent = new Date(currentVideo.published_at).toLocaleDateString('tr-TR');
-      document.getElementById('modalTranscriptBadge').innerHTML = currentVideo.transcript ? '<span class="text-green-600 text-sm">✓ Transkript mevcut</span>' : '';
       document.getElementById('videoTranscript').value = currentVideo.transcript || '';
       document.getElementById('transcriptStatus').textContent = '';
       document.getElementById('blogPreview').classList.add('hidden');
       document.getElementById('saveDraftBtn').classList.add('hidden');
       document.getElementById('publishBtn').classList.add('hidden');
+      
+      updateModalBadges();
+      
+      // Buton durumunu ayarla
+      const btn = document.getElementById('transcribeBtn');
+      if (currentVideo.transcript_status === 'processing') {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="inline-block animate-spin">⏳</span> İşleniyor...';
+      } else if (currentVideo.transcript) {
+        btn.disabled = false;
+        btn.textContent = '🔄 Yeniden Deşifre Et';
+      } else {
+        btn.disabled = false;
+        btn.textContent = '🎙️ Deşifre Et';
+      }
+      
       openModal('video');
     }
 
-    async function startTranscription() {
+    // Arka planda transkripsiyon başlat
+    async function startBackgroundTranscription() {
       if (!currentVideo) return;
+      if (!settings.assemblyaiApiKey) { toast('AssemblyAI API Key gerekli!'); switchPage('settings'); closeModal('video'); return; }
+      
       const btn = document.getElementById('transcribeBtn');
-      const status = document.getElementById('transcriptStatus');
-      btn.disabled = true; btn.textContent = '⏳ Başlatılıyor...';
+      btn.disabled = true;
+      btn.innerHTML = '<span class="inline-block animate-spin">⏳</span> Başlatılıyor...';
       
       try {
-        if (!settings.assemblyaiApiKey) { toast('AssemblyAI API Key gerekli!'); switchPage('settings'); closeModal('video'); return; }
-        
-        // videoId gönder (videoUrl değil)
-        const res = await fetch(`${API}/api/transcribe/assemblyai`, { 
-          method: 'POST', 
-          headers: { 'Content-Type': 'application/json' }, 
-          body: JSON.stringify({ videoId: currentVideo.id, apiKey: settings.assemblyaiApiKey }) 
+        const res = await fetch(`${API}/api/youtube/videos/${currentVideo.id}/transcribe`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ apiKey: settings.assemblyaiApiKey })
         });
         const data = await res.json();
-        console.log('Transcribe response:', data);
+        
         if (!data.success) throw new Error(data.error);
         
-        btn.textContent = '⏳ İşleniyor...';
-        let done = false;
-        while (!done) {
-          await new Promise(r => setTimeout(r, 5000));
-          const check = await fetch(`${API}/api/transcribe/assemblyai/${data.transcriptId}?apiKey=${encodeURIComponent(settings.assemblyaiApiKey)}`).then(r => r.json());
-          console.log('Status check:', check);
-          if (check.status === 'completed') {
-            done = true;
-            document.getElementById('videoTranscript').value = check.transcript;
-            status.textContent = `✓ ${check.transcript.split(' ').length} kelime`;
-            status.className = 'text-xs mt-1 text-green-600';
-            await fetch(`${API}/api/youtube/videos/${currentVideo.id}/transcript`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ transcript: check.transcript, model: 'assemblyai', status: 'completed' }) });
-            currentVideo.transcript = check.transcript;
-            toast('Transkript tamamlandı ✓');
-          } else if (check.status === 'error') { throw new Error(check.error || 'Transkripsiyon başarısız'); }
-          else { status.textContent = `İşleniyor... (${check.status})`; }
-        }
-      } catch (e) { 
+        toast('Deşifre işlemi başladı ✓ Sayfa kapatılsa bile devam edecek.');
+        btn.innerHTML = '<span class="inline-block animate-spin">⏳</span> İşleniyor...';
+        
+        // Video durumunu güncelle
+        currentVideo.transcript_status = 'processing';
+        updateModalBadges();
+        loadVideos();
+        
+      } catch (e) {
         console.error('Transcription error:', e);
-        status.textContent = e.message; 
-        status.className = 'text-xs mt-1 text-red-500'; 
-        toast('Hata: ' + e.message); 
+        toast('Hata: ' + e.message);
+        btn.disabled = false;
+        btn.textContent = '🎙️ Deşifre Et';
       }
-      finally { btn.disabled = false; btn.textContent = '🎙️ Deşifre Et'; }
     }
 
     async function generateBlog() {
@@ -477,6 +595,7 @@
       toast(status === 'published' ? 'Yayınlandı! 🚀' : 'Taslak kaydedildi 📝');
     }
 
+    // Users
     async function loadUsers() {
       const res = await fetch(`${API}/api/auth/users`);
       const users = await res.json();
