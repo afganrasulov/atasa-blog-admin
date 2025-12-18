@@ -13,6 +13,8 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .animate-spin { animation: spin 1s linear infinite; }
     .status-badge { position: absolute; top: 8px; right: 8px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+    .toggle-active { background: #10b981; }
+    .toggle-active span { transform: translateX(24px); }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
@@ -109,6 +111,93 @@
     <main id="settingsPage" class="max-w-2xl mx-auto px-4 py-8 hidden">
       <h2 class="text-2xl font-bold mb-6">⚙️ Ayarlar</h2>
       <div class="space-y-4">
+        
+        <!-- AUTOMATION SECTION -->
+        <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl p-4 text-white">
+          <h3 class="font-bold text-lg mb-1">🤖 Otomasyon</h3>
+          <p class="text-sm opacity-90">Yeni videolar otomatik olarak işlensin</p>
+        </div>
+        
+        <!-- Auto Scan Toggle -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium">📡 Otomatik Video Tarama</label>
+              <p class="text-xs text-slate-500 mt-1">YouTube kanalını belirli aralıklarla tarar ve yeni videoları bulur</p>
+            </div>
+            <button id="autoScanToggle" onclick="app.toggleAutoScan()" class="w-12 h-6 rounded-full bg-slate-300 relative cursor-pointer flex-shrink-0 ml-4 transition-colors">
+              <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+            </button>
+          </div>
+          <div id="autoScanOptions" class="mt-3 pt-3 border-t hidden">
+            <div class="flex items-center gap-2">
+              <label class="text-sm">Tarama Aralığı:</label>
+              <select id="scanInterval" class="px-3 py-1.5 border rounded-lg text-sm">
+                <option value="1">Her 1 saat</option>
+                <option value="3">Her 3 saat</option>
+                <option value="6" selected>Her 6 saat</option>
+                <option value="12">Her 12 saat</option>
+                <option value="24">Günde 1 kez</option>
+              </select>
+            </div>
+            <p id="lastScanTime" class="text-xs text-slate-500 mt-2"></p>
+          </div>
+        </div>
+        
+        <!-- Auto Transcribe Toggle -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium">🎙️ Otomatik Deşifre</label>
+              <p class="text-xs text-slate-500 mt-1">Yeni bulunan videolar otomatik olarak deşifre edilir</p>
+            </div>
+            <button id="autoTranscribeToggle" onclick="app.toggleAutoTranscribe()" class="w-12 h-6 rounded-full bg-slate-300 relative cursor-pointer flex-shrink-0 ml-4 transition-colors">
+              <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Auto Blog Toggle -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium">📝 Otomatik Blog Oluştur</label>
+              <p class="text-xs text-slate-500 mt-1">Deşifre tamamlanınca AI blog yazısı oluşturur</p>
+            </div>
+            <button id="autoBlogToggle" onclick="app.toggleAutoBlog()" class="w-12 h-6 rounded-full bg-slate-300 relative cursor-pointer flex-shrink-0 ml-4 transition-colors">
+              <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Auto Publish Toggle -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium">🚀 Otomatik Yayınla</label>
+              <p class="text-xs text-slate-500 mt-1">Blog yazıları otomatik yayınlanır (kapalıysa taslak olarak kaydedilir)</p>
+            </div>
+            <button id="autoPublishToggle" onclick="app.toggleAutoPublish()" class="w-12 h-6 rounded-full bg-slate-300 relative cursor-pointer flex-shrink-0 ml-4 transition-colors">
+              <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Manual Scan Button -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium">🔍 Manuel Tarama</label>
+              <p class="text-xs text-slate-500 mt-1">Şimdi YouTube kanalını tara ve yeni videoları bul</p>
+            </div>
+            <button onclick="app.manualScan()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700 flex-shrink-0 ml-4">
+              ▶️ Şimdi Tara
+            </button>
+          </div>
+        </div>
+        
+        <!-- DIVIDER -->
+        <div class="border-t my-6"></div>
         
         <!-- Transcription Provider -->
         <div class="bg-white rounded-xl p-4 border">
