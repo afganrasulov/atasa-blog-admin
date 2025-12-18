@@ -3,11 +3,34 @@ import { API, state } from './config.js';
 import { toast } from './utils.js';
 
 // Default prompts
-export const DEFAULT_BLOG_PROMPT = `YouTube transkriptini Türkçe SEO uyumlu blog yazısına dönüştür. 
-Markdown formatında, 600-1000 kelime.
-Format: BAŞLIK: [başlık]
+export const DEFAULT_BLOG_PROMPT = `YouTube video transkriptini Türkçe, SEO ve AI arama motorlarına (Google, ChatGPT, Perplexity, AI Overview) uyumlu blog yazısına dönüştür.
+
+## Format Kuralları:
+- HTML formatında yaz (Markdown değil)
+- 800-1200 kelime arası
+- Çıktı formatı:
+BAŞLIK: [SEO uyumlu, merak uyandırıcı başlık - 50-60 karakter]
 ---
-[içerik]`;
+[HTML içerik]
+
+## HTML Yapısı:
+- <h2> ve <h3> ile bölümle (h1 kullanma, sayfa başlığı için ayrılmış)
+- <p> paragraflar (3-4 cümle, kolay okunur)
+- <ul> veya <ol> listeler (taranabilirlik için)
+- <strong> önemli terimler için
+
+## İçerik Yapısı:
+1. **Giriş paragrafı**: Ana soruyu/konuyu direkt cevapla (AI snippet için kritik)
+2. **Ana bölümler**: H2 başlıklarla konuyu detaylandır
+3. **Pratik bilgiler**: Adım adım rehber veya ipuçları
+4. **SSS bölümü**: 2-3 sık sorulan soru ve cevap (<h3>Soru?</h3> <p>Cevap</p> formatında)
+5. **Sonuç**: Özet ve eylem çağrısı
+
+## AI Arama Optimizasyonu:
+- İlk 150 karakterde ana anahtar kelime ve cevap olsun
+- "Nedir", "Nasıl yapılır", "Ne zaman" gibi soru kalıplarını cevapla
+- Tanımlar ve açıklamalar ekle
+- Spesifik rakamlar, tarihler, örnekler ver`;
 
 export const DEFAULT_SEO_RULES = `## AI SEO Kuralları (Google + AI Arama Platformları)
 
