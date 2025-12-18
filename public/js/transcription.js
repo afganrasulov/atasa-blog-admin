@@ -92,6 +92,55 @@ export async function startBackgroundTranscription() {
   }
 }
 
+// Parse blog content from AI response
+function parseBlogContent(content) {
+  let title = '';
+  let meta = '';
+  let htmlContent = '';
+  
+  // Clean up any ** markdown characters
+  content = content.replace(/\*\*/g, '');
+  
+  // Extract title (supports "BAŞLIK:" with or without extra text)
+  const titleMatch = content.match(/BAŞLIK:\s*(.+?)(?:\n|$)/i);
+  if (titleMatch) {
+    title = titleMatch[1].trim();
+  }
+  
+  // Extract meta description
+  const metaMatch = content.match(/META:\s*(.+?)(?:\n---|\n\n|$)/is);
+  if (metaMatch) {
+    meta = metaMatch[1].trim();
+  }
+  
+  // Extract HTML content (everything after the last ---)
+  const parts = content.split('---');
+  if (parts.length >= 2) {
+    // Get the last part after --- which should be the HTML content
+    htmlContent = parts[parts.length - 1].trim();
+    
+    // If there's a META section in the content, also check for content after META
+    if (parts.length >= 3) {
+      htmlContent = parts[parts.length - 1].trim();
+    }
+  } else {
+    // Fallback: remove BAŞLIK and META lines
+    htmlContent = content
+      .replace(/BAŞLIK:\s*.+?\n/gi, '')
+      .replace(/META:\s*.+?\n/gi, '')
+      .trim();
+  }
+  
+  // Clean up any remaining BAŞLIK/META prefixes in content
+  htmlContent = htmlContent
+    .replace(/^BAŞLIK:\s*.+?\n/gim, '')
+    .replace(/^META:\s*.+?\n/gim, '')
+    .replace(/^META AÇIKLAMA:\s*.+?\n/gim, '')
+    .trim();
+  
+  return { title, meta, htmlContent };
+}
+
 export async function generateBlog() {
   const transcript = document.getElementById('videoTranscript').value.trim();
   if (!transcript || transcript.length < 50) { toast('Önce transkript girin'); return; }
@@ -124,10 +173,21 @@ export async function generateBlog() {
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
+    
     const content = data.choices[0].message.content;
-    const titleMatch = content.match(/BAŞLIK:\s*(.+)/);
-    document.getElementById('blogTitle').value = titleMatch ? titleMatch[1].trim() : state.currentVideo?.title || 'Blog';
-    document.getElementById('blogContent').value = content.replace(/BAŞLIK:\s*.+\n---\n?/, '').trim();
+    const parsed = parseBlogContent(content);
+    
+    // Set title (fallback to video title if not parsed)
+    document.getElementById('blogTitle').value = parsed.title || state.currentVideo?.title || 'Blog';
+    
+    // Set content (meta + html)
+    let finalContent = parsed.htmlContent;
+    if (parsed.meta) {
+      // Store meta as HTML comment at the beginning for reference
+      finalContent = `<!-- META: ${parsed.meta} -->\n${parsed.htmlContent}`;
+    }
+    document.getElementById('blogContent').value = finalContent;
+    
     document.getElementById('blogPreview').classList.remove('hidden');
     document.getElementById('saveDraftBtn').classList.remove('hidden');
     document.getElementById('publishBtn').classList.remove('hidden');
