@@ -138,6 +138,22 @@
           <p class="text-xs text-slate-500 mt-2">Boş bırakılırsa @atasa_tr kanalı kullanılır.</p>
         </div>
         
+        <!-- AI Title Generation Toggle -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium">🎯 Başlığı AI Oluştursun</label>
+              <p class="text-xs text-slate-500 mt-1">Açıkken AI, SEO kurallarına göre optimize edilmiş başlık oluşturur. Kapalıyken video başlığı kullanılır.</p>
+            </div>
+            <button id="aiTitleToggle" onclick="app.toggleAiTitle()" class="w-12 h-6 rounded-full bg-slate-300 relative cursor-pointer flex-shrink-0 ml-4">
+              <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+            </button>
+          </div>
+          <div id="aiTitleInfo" class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg hidden">
+            <p class="text-xs text-amber-700">⚡ AI başlık oluşturma aktif! Başlıklar, AI SEO Kuralları dikkate alınarak Google ve AI arama platformlarında üst sıralarda çıkacak şekilde optimize edilecek.</p>
+          </div>
+        </div>
+        
         <!-- Blog Prompt -->
         <div class="bg-white rounded-xl p-4 border">
           <div class="flex justify-between items-center mb-2">
