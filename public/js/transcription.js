@@ -5,6 +5,13 @@ import { loadVideos, updateModalBadges } from './videos.js';
 import { loadPosts } from './posts.js';
 import { getBlogSystemPrompt } from './settings.js';
 
+// Store parsed blog data for saving
+let currentBlogData = {
+  title: '',
+  meta: '',
+  content: ''
+};
+
 // Get current provider and API key
 function getTranscriptionConfig() {
   const provider = state.settings.transcriptionProvider || 'openai';
@@ -177,16 +184,18 @@ export async function generateBlog() {
     const content = data.choices[0].message.content;
     const parsed = parseBlogContent(content);
     
-    // Set title (fallback to video title if not parsed)
-    document.getElementById('blogTitle').value = parsed.title || state.currentVideo?.title || 'Blog';
+    // Store parsed data for saveBlog
+    currentBlogData = {
+      title: parsed.title || state.currentVideo?.title || 'Blog',
+      meta: parsed.meta,
+      content: parsed.htmlContent
+    };
     
-    // Set content (meta + html)
-    let finalContent = parsed.htmlContent;
-    if (parsed.meta) {
-      // Store meta as HTML comment at the beginning for reference
-      finalContent = `<!-- META: ${parsed.meta} -->\n${parsed.htmlContent}`;
-    }
-    document.getElementById('blogContent').value = finalContent;
+    // Set title
+    document.getElementById('blogTitle').value = currentBlogData.title;
+    
+    // Set content (clean HTML without meta comment)
+    document.getElementById('blogContent').value = currentBlogData.content;
     
     document.getElementById('blogPreview').classList.remove('hidden');
     document.getElementById('saveDraftBtn').classList.remove('hidden');
@@ -202,12 +211,22 @@ export async function saveBlog(status) {
   if (!title || !content) { toast('Başlık ve içerik gerekli'); return; }
   showLoading('Kaydediliyor...');
   
+  // Use META as excerpt, fallback to content snippet
+  let excerpt = currentBlogData.meta;
+  if (!excerpt) {
+    // Extract text from HTML content for excerpt (first 155 chars)
+    const textContent = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    excerpt = textContent.substring(0, 155);
+    if (textContent.length > 155) excerpt += '...';
+  }
+  
   const res = await fetch(`${API}/api/posts`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       title,
       content,
+      excerpt,
       category: state.currentVideo?.duration <= 60 ? 'Shorts' : 'YouTube',
       thumbnail: state.currentVideo?.thumbnail,
       status,
@@ -221,6 +240,9 @@ export async function saveBlog(status) {
       state.currentVideo.blog_created = true;
     }
   }
+  
+  // Reset current blog data
+  currentBlogData = { title: '', meta: '', content: '' };
   
   hideLoading();
   closeModal('video');
