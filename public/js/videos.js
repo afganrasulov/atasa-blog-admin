@@ -375,13 +375,11 @@ function getTranscriptionConfig() {
   return { provider, apiKey };
 }
 
-export async function fetchAndSaveVideos(type, pageToken = null) {
+export async function fetchAndSaveVideos(type, maxResults = 50) {
   if (!state.settings.youtubeApiKey) { toast('YouTube API Key gerekli!'); import('./utils.js').then(u => u.switchPage('settings')); return; }
   
-  if (!pageToken) {
-    showLoading('Videolar çekiliyor...');
-    pagination[type].nextPageToken = null;
-  }
+  showLoading(`Son ${maxResults} video çekiliyor...`);
+  pagination[type].nextPageToken = null;
   
   try {
     if (!state.settings.channelId) {
@@ -392,14 +390,112 @@ export async function fetchAndSaveVideos(type, pageToken = null) {
       }
     }
     
-    let searchUrl = `${YT_API}/search?part=snippet&channelId=${state.settings.channelId}&maxResults=50&order=date&type=video&key=${state.settings.youtubeApiKey}`;
-    if (pageToken) searchUrl += `&pageToken=${pageToken}`;
+    let allVideos = [];
+    let pageToken = null;
+    let remaining = maxResults;
+    
+    // Fetch videos in batches until we have enough
+    while (remaining > 0) {
+      const batchSize = Math.min(remaining, 50); // YouTube API max is 50
+      
+      let searchUrl = `${YT_API}/search?part=snippet&channelId=${state.settings.channelId}&maxResults=${batchSize}&order=date&type=video&key=${state.settings.youtubeApiKey}`;
+      if (pageToken) searchUrl += `&pageToken=${pageToken}`;
+      
+      const search = await fetch(searchUrl).then(r => r.json());
+      
+      if (!search.items?.length) break;
+      
+      const ids = search.items.map(i => i.id.videoId).join(',');
+      const details = await fetch(`${YT_API}/videos?part=contentDetails,statistics&id=${ids}&key=${state.settings.youtubeApiKey}`).then(r => r.json());
+      
+      const videos = search.items.map(i => {
+        const d = details.items.find(x => x.id === i.id.videoId);
+        const dur = parseDuration(d?.contentDetails?.duration || 'PT0S');
+        return { 
+          id: i.id.videoId, 
+          title: i.snippet.title, 
+          description: i.snippet.description, 
+          thumbnail: i.snippet.thumbnails.high?.url, 
+          duration: dur, 
+          viewCount: parseInt(d?.statistics?.viewCount || 0), 
+          publishedAt: i.snippet.publishedAt, 
+          channelId: state.settings.channelId, 
+          type: dur <= 60 ? 'short' : 'video' 
+        };
+      });
+      
+      allVideos = allVideos.concat(videos);
+      pageToken = search.nextPageToken;
+      remaining -= batchSize;
+      
+      document.getElementById('loadingText').textContent = `${allVideos.length} video çekildi...`;
+      
+      if (!pageToken) break; // No more pages
+    }
+    
+    pagination[type].nextPageToken = pageToken || null;
+    
+    // Filter by type
+    const filteredVideos = allVideos.filter(v => type === 'short' ? v.type === 'short' : v.type === 'video');
+    
+    if (filteredVideos.length > 0) {
+      await fetch(`${API}/api/youtube/videos`, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ videos: filteredVideos }) 
+      });
+    }
+    
+    hideLoading(); 
+    await loadVideos(); 
+    
+    toast(`${filteredVideos.length} ${type === 'short' ? 'shorts' : 'video'} kaydedildi ✓`);
+    
+  } catch (e) { 
+    hideLoading(); 
+    toast('Hata: ' + e.message); 
+  }
+}
+
+export async function loadMoreVideos(type) {
+  if (pagination[type].loading) return;
+  
+  const btn = document.getElementById(`loadMore-${type}`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="inline-block animate-spin">⏳</span> Yükleniyor...';
+  }
+  
+  pagination[type].loading = true;
+  
+  try {
+    if (pagination[type].nextPageToken) {
+      await fetchMoreWithToken(type, pagination[type].nextPageToken);
+    } else {
+      await fetchAllChannelVideos(type);
+    }
+  } finally {
+    pagination[type].loading = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '📥 Daha Fazla Yükle';
+    }
+  }
+}
+
+async function fetchMoreWithToken(type, pageToken) {
+  if (!state.settings.youtubeApiKey) { toast('YouTube API Key gerekli!'); return; }
+  
+  showLoading('Daha fazla video çekiliyor...');
+  
+  try {
+    let searchUrl = `${YT_API}/search?part=snippet&channelId=${state.settings.channelId}&maxResults=50&order=date&type=video&key=${state.settings.youtubeApiKey}&pageToken=${pageToken}`;
     
     const search = await fetch(searchUrl).then(r => r.json());
     
     if (!search.items?.length) { 
       hideLoading(); 
-      toast(pageToken ? 'Daha fazla video yok' : 'Video bulunamadı'); 
+      toast('Daha fazla video yok'); 
       return; 
     }
     
@@ -434,39 +530,11 @@ export async function fetchAndSaveVideos(type, pageToken = null) {
     
     hideLoading(); 
     await loadVideos(); 
-    
-    const totalMsg = pageToken ? `+${videos.length} video eklendi` : `${videos.length} video kaydedildi`;
-    toast(`${totalMsg} ✓ ${pagination[type].nextPageToken ? '(Daha fazla var)' : '(Tümü yüklendi)'}`);
+    toast(`+${videos.length} video eklendi ✓`);
     
   } catch (e) { 
     hideLoading(); 
     toast('Hata: ' + e.message); 
-  }
-}
-
-export async function loadMoreVideos(type) {
-  if (pagination[type].loading) return;
-  
-  const btn = document.getElementById(`loadMore-${type}`);
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="inline-block animate-spin">⏳</span> Yükleniyor...';
-  }
-  
-  pagination[type].loading = true;
-  
-  try {
-    if (pagination[type].nextPageToken) {
-      await fetchAndSaveVideos(type, pagination[type].nextPageToken);
-    } else {
-      await fetchAllChannelVideos(type);
-    }
-  } finally {
-    pagination[type].loading = false;
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '📥 Daha Fazla Yükle';
-    }
   }
 }
 
