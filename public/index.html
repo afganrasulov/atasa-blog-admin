@@ -178,7 +178,7 @@
             </div>
             <div>
               <h3 class="font-semibold text-slate-900">YouTube API Key</h3>
-              <p class="text-xs text-slate-500">Video listesi ve altyazılar için</p>
+              <p class="text-xs text-slate-500">Video listesi için</p>
             </div>
           </div>
           <input type="password" id="youtubeApiKey" placeholder="AIzaSy..." class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-sm">
@@ -312,16 +312,21 @@
             <div>
               <h4 id="modalVideoTitle" class="font-semibold text-slate-900"></h4>
               <p id="modalVideoDate" class="text-sm text-slate-500"></p>
+              <a id="modalVideoLink" href="" target="_blank" class="text-xs text-blue-600 hover:underline">YouTube'da izle ↗</a>
             </div>
           </div>
         </div>
         
         <div id="transcriptSection">
-          <label class="block text-sm font-medium text-slate-700 mb-2">Altyazı / Transkript</label>
-          <textarea id="videoTranscript" rows="8" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm" placeholder="Altyazı yükleniyor..."></textarea>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-sm font-medium text-slate-700">Altyazı / Transkript</label>
+            <span id="transcriptStatus" class="text-xs text-slate-400"></span>
+          </div>
+          <textarea id="videoTranscript" rows="8" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm" placeholder="Altyazı yüklemek için 'Altyazı Çek' butonuna tıklayın veya manuel yapıştırın..."></textarea>
           <div class="flex gap-2 mt-3">
-            <button onclick="fetchTranscript()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition-colors">
-              🔄 Altyazı Çek
+            <button onclick="fetchTranscript()" id="fetchTranscriptBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+              <span id="fetchBtnIcon">📥</span>
+              <span id="fetchBtnText">Altyazı Çek</span>
             </button>
             <button onclick="generateBlogFromTranscript()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors">
               🤖 Blog Oluştur (OpenAI)
@@ -409,7 +414,7 @@
       localStorage.setItem('openaiApiKey', settings.openaiApiKey);
       localStorage.setItem('channelId', settings.channelId);
       
-      showToast('Ayarlar kaydedildi');
+      showToast('Ayarlar kaydedildi ✓');
     }
 
     // Page Switching
@@ -508,7 +513,7 @@
       postsList.innerHTML = filtered.map(post => `
         <div class="p-4 hover:bg-slate-50 transition-colors">
           <div class="flex items-start gap-4">
-            <img src="${post.thumbnail}" alt="" class="w-20 h-20 rounded-xl object-cover shrink-0">
+            <img src="${post.thumbnail}" alt="" class="w-20 h-20 rounded-xl object-cover shrink-0" onerror="this.src='https://via.placeholder.com/80?text=No+Image'">
             <div class="flex-1 min-w-0">
               <div class="flex items-start justify-between gap-4">
                 <div>
@@ -654,7 +659,6 @@
     async function getChannelId() {
       if (settings.channelId) return settings.channelId;
       
-      // Get channel ID from handle
       const response = await fetch(`${YOUTUBE_API_BASE}/search?part=snippet&type=channel&q=${CHANNEL_HANDLE}&key=${settings.youtubeApiKey}`);
       const data = await response.json();
       if (data.items && data.items.length > 0) {
@@ -680,8 +684,7 @@
       try {
         const channelId = await getChannelId();
         
-        // Get videos from channel
-        const searchUrl = `${YOUTUBE_API_BASE}/search?part=snippet&channelId=${channelId}&maxResults=20&order=date&type=video&key=${settings.youtubeApiKey}`;
+        const searchUrl = `${YOUTUBE_API_BASE}/search?part=snippet&channelId=${channelId}&maxResults=50&order=date&type=video&key=${settings.youtubeApiKey}`;
         const response = await fetch(searchUrl);
         const data = await response.json();
 
@@ -690,13 +693,11 @@
           return;
         }
 
-        // Get video details to check duration (shorts vs long videos)
         const videoIds = data.items.map(v => v.id.videoId).join(',');
         const detailsUrl = `${YOUTUBE_API_BASE}/videos?part=contentDetails,statistics&id=${videoIds}&key=${settings.youtubeApiKey}`;
         const detailsResponse = await fetch(detailsUrl);
         const detailsData = await detailsResponse.json();
 
-        // Filter by duration
         const videos = data.items.map(item => {
           const details = detailsData.items.find(d => d.id === item.id.videoId);
           const duration = details?.contentDetails?.duration || 'PT0S';
@@ -769,11 +770,13 @@
       document.getElementById('videoToBlogModal').classList.remove('hidden');
       document.getElementById('videoToBlogModal').classList.add('flex');
       document.getElementById('videoTranscript').value = '';
+      document.getElementById('transcriptStatus').textContent = '';
       document.getElementById('blogPreviewSection').classList.add('hidden');
       document.getElementById('saveDraftBtn').classList.add('hidden');
       document.getElementById('publishBlogBtn').classList.add('hidden');
+      document.getElementById('fetchBtnIcon').textContent = '📥';
+      document.getElementById('fetchBtnText').textContent = 'Altyazı Çek';
       
-      // Get video info
       try {
         const response = await fetch(`${YOUTUBE_API_BASE}/videos?part=snippet&id=${videoId}&key=${settings.youtubeApiKey}`);
         const data = await response.json();
@@ -782,6 +785,7 @@
         document.getElementById('modalVideoThumbnail').src = currentVideo.snippet.thumbnails.high?.url || currentVideo.snippet.thumbnails.medium?.url;
         document.getElementById('modalVideoTitle').textContent = currentVideo.snippet.title;
         document.getElementById('modalVideoDate').textContent = new Date(currentVideo.snippet.publishedAt).toLocaleDateString('tr-TR');
+        document.getElementById('modalVideoLink').href = `https://www.youtube.com/watch?v=${videoId}`;
       } catch (error) {
         console.error('Video bilgisi alınamadı:', error);
       }
@@ -797,30 +801,52 @@
     async function fetchTranscript() {
       if (!currentVideoId) return;
       
-      showLoading('Altyazı çekiliyor...');
+      const btn = document.getElementById('fetchTranscriptBtn');
+      const icon = document.getElementById('fetchBtnIcon');
+      const text = document.getElementById('fetchBtnText');
+      const status = document.getElementById('transcriptStatus');
+      
+      btn.disabled = true;
+      icon.textContent = '⏳';
+      text.textContent = 'Çekiliyor...';
+      status.textContent = '';
       
       try {
-        // YouTube Data API doesn't provide captions directly
-        // We'll use the video description as fallback or inform user
-        const description = currentVideo?.snippet?.description || '';
+        // Backend API'den altyazı çek
+        const response = await fetch(`${API_URL}/api/youtube/transcript/${currentVideoId}`);
+        const data = await response.json();
         
-        // Try to get captions list
-        const captionsUrl = `${YOUTUBE_API_BASE}/captions?part=snippet&videoId=${currentVideoId}&key=${settings.youtubeApiKey}`;
-        const captionsResponse = await fetch(captionsUrl);
-        const captionsData = await captionsResponse.json();
-        
-        if (captionsData.items && captionsData.items.length > 0) {
-          // There are captions but we need OAuth to download them
-          document.getElementById('videoTranscript').value = `[Bu video için altyazı mevcut ancak indirmek için OAuth gerekli]\n\nVideo Açıklaması:\n${description}\n\n[Manuel olarak altyazı yapıştırabilirsiniz]`;
+        if (data.success && data.transcript) {
+          document.getElementById('videoTranscript').value = data.transcript;
+          status.textContent = `✓ ${data.wordCount} kelime, ${data.segmentCount} segment`;
+          status.classList.remove('text-red-500');
+          status.classList.add('text-green-600');
+          showToast('Altyazı başarıyla çekildi! ✓');
         } else {
-          document.getElementById('videoTranscript').value = `Video Açıklaması:\n${description}\n\n[Bu videoda altyazı yok. Manuel olarak transkript yapıştırabilirsiniz]`;
+          throw new Error(data.message || 'Altyazı bulunamadı');
         }
         
-        hideLoading();
-        showToast('Altyazı bilgisi alındı');
+        icon.textContent = '✓';
+        text.textContent = 'Altyazı Çekildi';
+        btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+        btn.classList.add('bg-green-600', 'hover:bg-green-700');
+        
       } catch (error) {
-        hideLoading();
-        document.getElementById('videoTranscript').value = `[Hata: ${error.message}]\n\nManuel olarak altyazı yapıştırabilirsiniz.`;
+        console.error('Transcript error:', error);
+        icon.textContent = '❌';
+        text.textContent = 'Tekrar Dene';
+        status.textContent = error.message || 'Altyazı çekilemedi';
+        status.classList.add('text-red-500');
+        status.classList.remove('text-green-600');
+        
+        // Video açıklamasını alternatif olarak göster
+        if (currentVideo?.snippet?.description) {
+          document.getElementById('videoTranscript').value = `[Otomatik altyazı bulunamadı]\n\nVideo Açıklaması:\n${currentVideo.snippet.description}\n\n---\nManuel olarak altyazı yapıştırabilirsiniz.`;
+        }
+        
+        showToast('Altyazı çekilemedi. Manuel yapıştırabilirsiniz.');
+      } finally {
+        btn.disabled = false;
       }
     }
 
@@ -833,8 +859,8 @@
       }
 
       const transcript = document.getElementById('videoTranscript').value.trim();
-      if (!transcript) {
-        showToast('Önce altyazı/transkript girin');
+      if (!transcript || transcript.length < 50) {
+        showToast('Önce altyazı/transkript girin (en az 50 karakter)');
         return;
       }
 
@@ -860,13 +886,14 @@ Kurallar:
 - Başlık için ## kullan (ana başlık)
 - Alt başlıklar için ### kullan
 - Konuşma dilini düzgün yazı diline çevir
-- "eee", "hani", "işte" gibi dolgu kelimeleri temizle
+- "eee", "hani", "işte", "yani" gibi dolgu kelimeleri temizle
 - 400-800 kelime arası yaz
 - Bilgilendirici ve profesyonel bir ton kullan
-- Sonunda kısa bir özet ekle
+- Sonunda kısa bir özet veya sonuç bölümü ekle
+- İçeriği mantıklı paragraflara böl
 
 Çıktı formatı:
-BAŞLIK: [Blog başlığı]
+BAŞLIK: [Blog başlığı - SEO uyumlu, dikkat çekici]
 ---
 [Blog içeriği markdown formatında]`
               },
@@ -876,7 +903,7 @@ BAŞLIK: [Blog başlığı]
               }
             ],
             temperature: 0.7,
-            max_tokens: 2000
+            max_tokens: 2500
           })
         });
 
@@ -888,7 +915,6 @@ BAŞLIK: [Blog başlığı]
 
         const content = data.choices[0].message.content;
         
-        // Parse title and content
         const titleMatch = content.match(/BAŞLIK:\s*(.+)/);
         const blogTitle = titleMatch ? titleMatch[1].trim() : currentVideo?.snippet?.title || 'Blog Yazısı';
         const blogContent = content.replace(/BAŞLIK:\s*.+\n---\n?/, '').trim();
@@ -900,7 +926,7 @@ BAŞLIK: [Blog başlığı]
         document.getElementById('publishBlogBtn').classList.remove('hidden');
 
         hideLoading();
-        showToast('Blog yazısı oluşturuldu');
+        showToast('Blog yazısı oluşturuldu! ✓');
       } catch (error) {
         hideLoading();
         showToast('Hata: ' + error.message);
@@ -947,7 +973,7 @@ BAŞLIK: [Blog başlığı]
         
         hideLoading();
         closeVideoToBlogModal();
-        showToast(status === 'published' ? 'Blog yayınlandı!' : 'Taslak kaydedildi!');
+        showToast(status === 'published' ? 'Blog yayınlandı! 🚀' : 'Taslak kaydedildi! 📝');
         switchPage('posts');
         loadPosts();
       } catch (error) {
