@@ -3,7 +3,7 @@ import { initAuth, logout, addUser, removeUser } from './auth.js';
 import { loadPosts, setFilter, publishPost, unpublishPost, deletePost, editPost, savePost } from './posts.js';
 import { loadVideos, fetchAndSaveVideos, openVideoModal, loadMoreVideos, toggleVideoSelection, toggleSelectAll, clearSelection, setVideoFilter, bulkTranscribe, bulkGenerateBlog, reclassifyAllVideos } from './videos.js';
 import { transcribeAll, startBackgroundTranscription, generateBlog, saveBlog } from './transcription.js';
-import { saveSettings, toggleAutopilot, onProviderChange, resetBlogPrompt, resetSeoRules, toggleAiTitle } from './settings.js';
+import { saveSettings, toggleAutopilot, onProviderChange, resetBlogPrompt, resetSeoRules, toggleAiTitle, toggleAutoScan, toggleAutoTranscribe, toggleAutoBlog, toggleAutoPublish, manualScan } from './settings.js';
 import { switchPage, openModal, closeModal } from './utils.js';
 
 // Export all functions to window.app for HTML onclick handlers
@@ -46,6 +46,13 @@ window.app = {
   resetBlogPrompt,
   resetSeoRules,
   toggleAiTitle,
+  
+  // Automation
+  toggleAutoScan,
+  toggleAutoTranscribe,
+  toggleAutoBlog,
+  toggleAutoPublish,
+  manualScan,
   
   // Utils
   switchPage,
