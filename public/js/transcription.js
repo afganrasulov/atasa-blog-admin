@@ -3,6 +3,7 @@ import { API, state } from './config.js';
 import { toast, showLoading, hideLoading, closeModal, switchPage } from './utils.js';
 import { loadVideos, updateModalBadges } from './videos.js';
 import { loadPosts } from './posts.js';
+import { getBlogSystemPrompt } from './settings.js';
 
 // Get current provider and API key
 function getTranscriptionConfig() {
@@ -105,17 +106,20 @@ export async function generateBlog() {
   
   showLoading('Blog yazısı oluşturuluyor...');
   try {
+    // Get combined system prompt (blog prompt + SEO rules)
+    const systemPrompt = getBlogSystemPrompt();
+    
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.settings.openaiApiKey}` },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'YouTube transkriptini Türkçe SEO uyumlu blog yazısına dönüştür. Markdown formatında, 400-800 kelime. Format: BAŞLIK: [başlık]\n---\n[içerik]' },
-          { role: 'user', content: `Video: ${state.currentVideo?.title}\n\nTranskript:\n${transcript}` }
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Video Başlığı: ${state.currentVideo?.title}\n\nTranskript:\n${transcript}` }
         ],
         temperature: 0.7,
-        max_tokens: 2500
+        max_tokens: 3500
       })
     });
     const data = await res.json();
