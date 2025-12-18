@@ -151,7 +151,7 @@ function renderVideos(type) {
           🎙️ Seçilenleri Deşifre Et (${selectedCount})
         </button>
         <button onclick="window.app.bulkGenerateBlog('${type}')" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">
-          📝 Seçilenleri Blog Yap (${selectedCount})
+          📝 Blog Yazısı Oluştur (${selectedCount})
         </button>
         <button onclick="window.app.clearSelection('${type}')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300">
           ✕ Seçimi Temizle
@@ -248,6 +248,22 @@ export async function bulkGenerateBlog(type) {
     return;
   }
   
+  // Check for videos that already have blogs
+  const videosWithBlog = videosWithTranscript.filter(id => {
+    const video = state.cachedVideos[type].find(v => v.id === id);
+    return video && video.blog_created;
+  });
+  
+  if (videosWithBlog.length > 0) {
+    const confirmMsg = videosWithBlog.length === videosWithTranscript.length
+      ? `Seçili ${videosWithBlog.length} videonun tamamı için zaten blog oluşturulmuş. Yine de devam etmek istiyor musunuz?`
+      : `Seçili ${videosWithTranscript.length} videodan ${videosWithBlog.length} tanesi için zaten blog oluşturulmuş. Devam etmek istiyor musunuz?`;
+    
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+  }
+  
   if (!state.settings.openaiApiKey) {
     toast('OpenAI API Key gerekli!');
     import('./utils.js').then(u => u.switchPage('settings'));
@@ -326,7 +342,7 @@ export async function bulkGenerateBlog(type) {
   loadVideos();
   
   if (failCount === 0) {
-    toast(`${successCount} blog oluşturuldu ✓`);
+    toast(`${successCount} blog yazısı oluşturuldu ✓`);
   } else {
     toast(`${successCount} başarılı, ${failCount} başarısız`);
   }
@@ -553,6 +569,19 @@ export function openVideoModal(id) {
   document.getElementById('saveDraftBtn').classList.add('hidden');
   document.getElementById('publishBtn').classList.add('hidden');
   updateModalBadges();
+  
+  // Update generate blog button based on blog_created status
+  const generateBtn = document.getElementById('generateBlogBtn');
+  if (generateBtn) {
+    if (state.currentVideo.blog_created) {
+      generateBtn.textContent = '🤖 Yeniden Blog Yazısı Oluştur';
+      generateBtn.className = 'px-4 py-2 bg-orange-500 text-white rounded-lg text-sm mb-4 hover:bg-orange-600';
+    } else {
+      generateBtn.textContent = '🤖 Blog Yazısı Oluştur';
+      generateBtn.className = 'px-4 py-2 bg-green-600 text-white rounded-lg text-sm mb-4 hover:bg-green-700';
+    }
+  }
+  
   const btn = document.getElementById('transcribeBtn');
   if (state.currentVideo.transcript_status === 'processing') { btn.disabled = true; btn.innerHTML = '<span class="inline-block animate-spin">⏳</span> İşleniyor...'; }
   else if (state.currentVideo.transcript) { btn.disabled = false; btn.textContent = '🔄 Yeniden Deşifre Et'; }
