@@ -3,6 +3,9 @@ import { API, YT_API, state } from './config.js';
 import { toast, showLoading, hideLoading, openModal } from './utils.js';
 import { getBlogSystemPrompt } from './settings.js';
 
+// Shorts max duration: 3 minutes (180 seconds)
+const SHORTS_MAX_DURATION = 180;
+
 // Pagination and selection state
 const pagination = {
   video: { nextPageToken: null, loading: false },
@@ -20,16 +23,6 @@ export const videoFilter = {
   video: 'all', // 'all', 'no-blog', 'with-transcript'
   short: 'all'
 };
-
-// Determine if video is a Short based on aspect ratio (vertical = short)
-function isShort(thumbnails) {
-  // Check default thumbnail dimensions - Shorts are vertical (height > width)
-  const thumb = thumbnails?.default || thumbnails?.medium || thumbnails?.high;
-  if (thumb && thumb.width && thumb.height) {
-    return thumb.height > thumb.width; // Vertical = Short
-  }
-  return false;
-}
 
 export async function loadVideos() {
   try {
@@ -329,7 +322,7 @@ export async function bulkGenerateBlog(type) {
         body: JSON.stringify({
           title: blogTitle,
           content: blogContent,
-          category: type === 'short' ? 'Shorts' : 'YouTube',
+          category: video.duration <= SHORTS_MAX_DURATION ? 'Shorts' : 'YouTube',
           thumbnail: video.thumbnail,
           status: 'draft',
           videoId: video.id
@@ -385,91 +378,6 @@ function getTranscriptionConfig() {
   return { provider, apiKey };
 }
 
-// Reclassify all videos - check YouTube API for vertical/horizontal and update types
-export async function reclassifyVideos() {
-  if (!state.settings.youtubeApiKey) { 
-    toast('YouTube API Key gerekli!'); 
-    return; 
-  }
-  
-  // Get all videos from both lists
-  const allVideos = [...state.cachedVideos.video, ...state.cachedVideos.short];
-  
-  if (allVideos.length === 0) {
-    toast('Sınıflandırılacak video yok');
-    return;
-  }
-  
-  showLoading(`${allVideos.length} video kontrol ediliyor...`);
-  
-  try {
-    const videosToUpdate = [];
-    
-    // Process in batches of 50 (YouTube API limit)
-    for (let i = 0; i < allVideos.length; i += 50) {
-      const batch = allVideos.slice(i, i + 50);
-      const ids = batch.map(v => v.id).join(',');
-      
-      document.getElementById('loadingText').textContent = `${i + batch.length}/${allVideos.length} video kontrol ediliyor...`;
-      
-      // Fetch video details from YouTube to get thumbnail dimensions
-      const response = await fetch(`${YT_API}/videos?part=snippet&id=${ids}&key=${state.settings.youtubeApiKey}`);
-      const data = await response.json();
-      
-      if (data.items) {
-        for (const item of data.items) {
-          const videoIsShort = isShort(item.snippet.thumbnails);
-          const currentVideo = allVideos.find(v => v.id === item.id);
-          const currentType = currentVideo?.video_type || 'video';
-          const newType = videoIsShort ? 'short' : 'video';
-          
-          // Only add if type changed
-          if (currentType !== newType) {
-            videosToUpdate.push({
-              id: item.id,
-              type: newType
-            });
-          }
-        }
-      }
-    }
-    
-    if (videosToUpdate.length === 0) {
-      hideLoading();
-      toast('Tüm videolar zaten doğru sınıflandırılmış ✓');
-      return;
-    }
-    
-    document.getElementById('loadingText').textContent = `${videosToUpdate.length} video güncelleniyor...`;
-    
-    // Send update to API
-    const updateResponse = await fetch(`${API}/api/youtube/videos/reclassify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ videos: videosToUpdate })
-    });
-    
-    const updateResult = await updateResponse.json();
-    
-    hideLoading();
-    await loadVideos();
-    
-    const movedToShorts = videosToUpdate.filter(v => v.type === 'short').length;
-    const movedToVideos = videosToUpdate.filter(v => v.type === 'video').length;
-    
-    let message = '';
-    if (movedToShorts > 0) message += `${movedToShorts} video → Shorts. `;
-    if (movedToVideos > 0) message += `${movedToVideos} shorts → Video. `;
-    
-    toast(message + '✓');
-    
-  } catch (e) {
-    hideLoading();
-    toast('Hata: ' + e.message);
-    console.error(e);
-  }
-}
-
 export async function fetchAndSaveVideos(type, maxResults = 50) {
   if (!state.settings.youtubeApiKey) { toast('YouTube API Key gerekli!'); import('./utils.js').then(u => u.switchPage('settings')); return; }
   
@@ -506,7 +414,6 @@ export async function fetchAndSaveVideos(type, maxResults = 50) {
       const videos = search.items.map(i => {
         const d = details.items.find(x => x.id === i.id.videoId);
         const dur = parseDuration(d?.contentDetails?.duration || 'PT0S');
-        const videoIsShort = isShort(i.snippet.thumbnails);
         return { 
           id: i.id.videoId, 
           title: i.snippet.title, 
@@ -516,7 +423,7 @@ export async function fetchAndSaveVideos(type, maxResults = 50) {
           viewCount: parseInt(d?.statistics?.viewCount || 0), 
           publishedAt: i.snippet.publishedAt, 
           channelId: state.settings.channelId, 
-          type: videoIsShort ? 'short' : 'video' 
+          type: dur <= SHORTS_MAX_DURATION ? 'short' : 'video' 
         };
       });
       
@@ -611,7 +518,6 @@ async function fetchMoreWithToken(type, pageToken) {
     const videos = search.items.map(i => {
       const d = details.items.find(x => x.id === i.id.videoId);
       const dur = parseDuration(d?.contentDetails?.duration || 'PT0S');
-      const videoIsShort = isShort(i.snippet.thumbnails);
       return { 
         id: i.id.videoId, 
         title: i.snippet.title, 
@@ -621,7 +527,7 @@ async function fetchMoreWithToken(type, pageToken) {
         viewCount: parseInt(d?.statistics?.viewCount || 0), 
         publishedAt: i.snippet.publishedAt, 
         channelId: state.settings.channelId, 
-        type: videoIsShort ? 'short' : 'video' 
+        type: dur <= SHORTS_MAX_DURATION ? 'short' : 'video' 
       };
     }).filter(v => type === 'short' ? v.type === 'short' : v.type === 'video');
     
@@ -676,7 +582,6 @@ async function fetchAllChannelVideos(type) {
       const videos = search.items.map(i => {
         const d = details.items.find(x => x.id === i.id.videoId);
         const dur = parseDuration(d?.contentDetails?.duration || 'PT0S');
-        const videoIsShort = isShort(i.snippet.thumbnails);
         return { 
           id: i.id.videoId, 
           title: i.snippet.title, 
@@ -686,7 +591,7 @@ async function fetchAllChannelVideos(type) {
           viewCount: parseInt(d?.statistics?.viewCount || 0), 
           publishedAt: i.snippet.publishedAt, 
           channelId: state.settings.channelId, 
-          type: videoIsShort ? 'short' : 'video' 
+          type: dur <= SHORTS_MAX_DURATION ? 'short' : 'video' 
         };
       });
       
