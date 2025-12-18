@@ -129,7 +129,8 @@ export async function saveBlog(status) {
   const content = document.getElementById('blogContent').value.trim();
   if (!title || !content) { toast('Başlık ve içerik gerekli'); return; }
   showLoading('Kaydediliyor...');
-  await fetch(`${API}/api/posts`, {
+  
+  const res = await fetch(`${API}/api/posts`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -137,11 +138,21 @@ export async function saveBlog(status) {
       content,
       category: state.currentVideo?.duration <= 60 ? 'Shorts' : 'YouTube',
       thumbnail: state.currentVideo?.thumbnail,
-      status
+      status,
+      videoId: state.currentVideo?.id // Link blog to video
     })
   });
+  
+  if (res.ok) {
+    // Update local state to show blog_created
+    if (state.currentVideo) {
+      state.currentVideo.blog_created = true;
+    }
+  }
+  
   hideLoading();
   closeModal('video');
+  loadVideos(); // Refresh to show blog_created badge
   switchPage('posts');
   loadPosts();
   toast(status === 'published' ? 'Yayınlandı! 🚀' : 'Taslak kaydedildi 📝');
