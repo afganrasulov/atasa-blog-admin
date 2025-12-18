@@ -15,7 +15,8 @@ export const state = {
     youtubeApiKey: '',
     openaiApiKey: '',
     assemblyaiApiKey: '',
-    channelId: ''
+    channelId: '',
+    transcriptionProvider: 'openai' // 'openai' or 'assemblyai'
   },
   statusCheckInterval: null
 };
