@@ -101,13 +101,6 @@
           <input type="password" id="assemblyaiApiKey" class="w-full px-3 py-2 border rounded-lg font-mono text-sm">
         </div>
         <div class="bg-white rounded-xl p-4 border">
-          <label class="block text-sm font-medium mb-2">Transkripsiyon Servisi</label>
-          <select id="transcriptionService" class="w-full px-3 py-2 border rounded-lg">
-            <option value="openai">OpenAI Whisper</option>
-            <option value="assemblyai">AssemblyAI</option>
-          </select>
-        </div>
-        <div class="bg-white rounded-xl p-4 border">
           <label class="block text-sm font-medium mb-2">YouTube Kanal ID</label>
           <input type="text" id="youtubeChannelId" class="w-full px-3 py-2 border rounded-lg font-mono text-sm">
         </div>
@@ -200,9 +193,8 @@
     
     let posts = [], currentFilter = 'all', currentUser = null, currentVideo = null, autopilot = false;
     let cachedVideos = { video: [], short: [] };
-    let settings = { youtubeApiKey: '', openaiApiKey: '', assemblyaiApiKey: '', transcriptionService: 'assemblyai', channelId: '' };
+    let settings = { youtubeApiKey: '', openaiApiKey: '', assemblyaiApiKey: '', channelId: '' };
 
-    // Init
     window.onload = () => {
       google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleLogin });
       const saved = localStorage.getItem('adminUser');
@@ -230,8 +222,7 @@
       if (data.allowed) {
         currentUser = { email: jwt.email, name: jwt.name, picture: jwt.picture };
         localStorage.setItem('adminUser', JSON.stringify(currentUser));
-        showApp();
-        toast(`Hoş geldin, ${jwt.given_name}! 👋`);
+        showApp(); toast(`Hoş geldin, ${jwt.given_name}! 👋`);
       } else {
         document.getElementById('loginError').textContent = 'Giriş izniniz yok.';
         document.getElementById('loginError').classList.remove('hidden');
@@ -240,17 +231,14 @@
 
     function logout() { currentUser = null; localStorage.removeItem('adminUser'); google.accounts.id.disableAutoSelect(); showLogin(); }
 
-    // Settings
     function loadSettings() {
       settings.youtubeApiKey = localStorage.getItem('youtubeApiKey') || '';
       settings.openaiApiKey = localStorage.getItem('openaiApiKey') || '';
       settings.assemblyaiApiKey = localStorage.getItem('assemblyaiApiKey') || '880456141ffa4ac5b860408278aef7f9';
-      settings.transcriptionService = localStorage.getItem('transcriptionService') || 'assemblyai';
       settings.channelId = localStorage.getItem('channelId') || '';
       document.getElementById('youtubeApiKey').value = settings.youtubeApiKey;
       document.getElementById('openaiApiKey').value = settings.openaiApiKey;
       document.getElementById('assemblyaiApiKey').value = settings.assemblyaiApiKey;
-      document.getElementById('transcriptionService').value = settings.transcriptionService;
       document.getElementById('youtubeChannelId').value = settings.channelId;
       fetch(`${API}/api/settings`).then(r => r.json()).then(d => { autopilot = d.autopilot; updateAutopilotUI(); });
     }
@@ -259,7 +247,6 @@
       settings.youtubeApiKey = document.getElementById('youtubeApiKey').value.trim();
       settings.openaiApiKey = document.getElementById('openaiApiKey').value.trim();
       settings.assemblyaiApiKey = document.getElementById('assemblyaiApiKey').value.trim();
-      settings.transcriptionService = document.getElementById('transcriptionService').value;
       settings.channelId = document.getElementById('youtubeChannelId').value.trim();
       Object.entries(settings).forEach(([k, v]) => localStorage.setItem(k, v));
       toast('Kaydedildi ✓');
@@ -277,7 +264,6 @@
       toast(autopilot ? 'Otopilot açık' : 'Otopilot kapalı');
     }
 
-    // Pages
     function switchPage(page) {
       ['posts', 'youtube', 'shorts', 'settings'].forEach(p => {
         document.getElementById(p + 'Page').classList.toggle('hidden', p !== page);
@@ -285,7 +271,6 @@
       });
     }
 
-    // Posts
     async function loadPosts() {
       const res = await fetch(`${API}/api/posts/all`);
       posts = await res.json();
@@ -348,7 +333,6 @@
       closeModal('edit'); loadPosts(); toast('Güncellendi');
     }
 
-    // Videos
     async function loadVideos() {
       try {
         const [v, s] = await Promise.all([fetch(`${API}/api/youtube/videos?type=video`), fetch(`${API}/api/youtube/videos?type=short`)]);
@@ -397,7 +381,6 @@
 
     function parseDuration(d) { const m = d.match(/PT(\d+H)?(\d+M)?(\d+S)?/); return (parseInt(m[1]) || 0) * 3600 + (parseInt(m[2]) || 0) * 60 + (parseInt(m[3]) || 0); }
 
-    // Video Modal
     async function openVideoModal(id) {
       currentVideo = cachedVideos.video.find(v => v.id === id) || cachedVideos.short.find(v => v.id === id);
       if (!currentVideo) return;
@@ -420,19 +403,24 @@
       btn.disabled = true; btn.textContent = '⏳ Başlatılıyor...';
       
       try {
-        const apiKey = settings.transcriptionService === 'openai' ? settings.openaiApiKey : settings.assemblyaiApiKey;
-        if (!apiKey) { toast(`${settings.transcriptionService.toUpperCase()} API Key gerekli!`); switchPage('settings'); closeModal('video'); return; }
+        if (!settings.assemblyaiApiKey) { toast('AssemblyAI API Key gerekli!'); switchPage('settings'); closeModal('video'); return; }
         
-        const videoUrl = `https://www.youtube.com/watch?v=${currentVideo.id}`;
-        const res = await fetch(`${API}/api/transcribe/assemblyai`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ videoUrl, apiKey }) });
+        // videoId gönder (videoUrl değil)
+        const res = await fetch(`${API}/api/transcribe/assemblyai`, { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify({ videoId: currentVideo.id, apiKey: settings.assemblyaiApiKey }) 
+        });
         const data = await res.json();
+        console.log('Transcribe response:', data);
         if (!data.success) throw new Error(data.error);
         
         btn.textContent = '⏳ İşleniyor...';
         let done = false;
         while (!done) {
           await new Promise(r => setTimeout(r, 5000));
-          const check = await fetch(`${API}/api/transcribe/assemblyai/${data.transcriptId}?apiKey=${encodeURIComponent(apiKey)}`).then(r => r.json());
+          const check = await fetch(`${API}/api/transcribe/assemblyai/${data.transcriptId}?apiKey=${encodeURIComponent(settings.assemblyaiApiKey)}`).then(r => r.json());
+          console.log('Status check:', check);
           if (check.status === 'completed') {
             done = true;
             document.getElementById('videoTranscript').value = check.transcript;
@@ -441,10 +429,15 @@
             await fetch(`${API}/api/youtube/videos/${currentVideo.id}/transcript`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ transcript: check.transcript, model: 'assemblyai', status: 'completed' }) });
             currentVideo.transcript = check.transcript;
             toast('Transkript tamamlandı ✓');
-          } else if (check.status === 'error') { throw new Error(check.error); }
+          } else if (check.status === 'error') { throw new Error(check.error || 'Transkripsiyon başarısız'); }
           else { status.textContent = `İşleniyor... (${check.status})`; }
         }
-      } catch (e) { status.textContent = e.message; status.className = 'text-xs mt-1 text-red-500'; toast('Hata: ' + e.message); }
+      } catch (e) { 
+        console.error('Transcription error:', e);
+        status.textContent = e.message; 
+        status.className = 'text-xs mt-1 text-red-500'; 
+        toast('Hata: ' + e.message); 
+      }
       finally { btn.disabled = false; btn.textContent = '🎙️ Deşifre Et'; }
     }
 
@@ -457,8 +450,8 @@
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.openaiApiKey}` },
           body: JSON.stringify({ model: 'gpt-4o-mini', messages: [
-            { role: 'system', content: 'YouTube transkriptini Türkçe SEO uyumlu blog yazısına dönüştür. Markdown formatında, 400-800 kelime. Format: BAŞLIK: [başlık]\\n---\\n[içerik]' },
-            { role: 'user', content: `Video: ${currentVideo?.title}\\n\\nTranskript:\\n${transcript}` }
+            { role: 'system', content: 'YouTube transkriptini Türkçe SEO uyumlu blog yazısına dönüştür. Markdown formatında, 400-800 kelime. Format: BAŞLIK: [başlık]\n---\n[içerik]' },
+            { role: 'user', content: `Video: ${currentVideo?.title}\n\nTranskript:\n${transcript}` }
           ], temperature: 0.7, max_tokens: 2500 })
         });
         const data = await res.json();
@@ -484,7 +477,6 @@
       toast(status === 'published' ? 'Yayınlandı! 🚀' : 'Taslak kaydedildi 📝');
     }
 
-    // Users
     async function loadUsers() {
       const res = await fetch(`${API}/api/auth/users`);
       const users = await res.json();
@@ -510,8 +502,6 @@
     }
 
     function openAddUserModal() { openModal('addUser'); }
-
-    // Utils
     function openModal(name) { document.getElementById(name + 'Modal').classList.remove('hidden'); document.getElementById(name + 'Modal').classList.add('flex'); }
     function closeModal(name) { document.getElementById(name + 'Modal').classList.add('hidden'); document.getElementById(name + 'Modal').classList.remove('flex'); }
     function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000); }
