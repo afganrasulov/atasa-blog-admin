@@ -3,9 +3,6 @@ import { API, YT_API, state } from './config.js';
 import { toast, showLoading, hideLoading, openModal } from './utils.js';
 import { getBlogSystemPrompt } from './settings.js';
 
-// Shorts max duration: 3 minutes (180 seconds)
-const SHORTS_MAX_DURATION = 180;
-
 // Pagination and selection state
 const pagination = {
   video: { nextPageToken: null, loading: false },
@@ -322,7 +319,7 @@ export async function bulkGenerateBlog(type) {
         body: JSON.stringify({
           title: blogTitle,
           content: blogContent,
-          category: video.duration <= SHORTS_MAX_DURATION ? 'Shorts' : 'YouTube',
+          category: video.duration <= 60 ? 'Shorts' : 'YouTube',
           thumbnail: video.thumbnail,
           status: 'draft',
           videoId: video.id
@@ -381,7 +378,7 @@ function getTranscriptionConfig() {
 export async function fetchAndSaveVideos(type, maxResults = 50) {
   if (!state.settings.youtubeApiKey) { toast('YouTube API Key gerekli!'); import('./utils.js').then(u => u.switchPage('settings')); return; }
   
-  showLoading(`Son ${maxResults} ${type === 'short' ? 'shorts' : 'video'} aranıyor...`);
+  showLoading(`Son ${maxResults} video çekiliyor...`);
   pagination[type].nextPageToken = null;
   
   try {
@@ -394,14 +391,14 @@ export async function fetchAndSaveVideos(type, maxResults = 50) {
     }
     
     let allVideos = [];
-    let filteredVideos = [];
     let pageToken = null;
-    let pagesScanned = 0;
-    const maxPagesToScan = 10; // Limit pages to avoid too many API calls
+    let remaining = maxResults;
     
-    // Keep fetching until we have enough videos of the requested type
-    while (filteredVideos.length < maxResults && pagesScanned < maxPagesToScan) {
-      let searchUrl = `${YT_API}/search?part=snippet&channelId=${state.settings.channelId}&maxResults=50&order=date&type=video&key=${state.settings.youtubeApiKey}`;
+    // Fetch videos in batches until we have enough
+    while (remaining > 0) {
+      const batchSize = Math.min(remaining, 50); // YouTube API max is 50
+      
+      let searchUrl = `${YT_API}/search?part=snippet&channelId=${state.settings.channelId}&maxResults=${batchSize}&order=date&type=video&key=${state.settings.youtubeApiKey}`;
       if (pageToken) searchUrl += `&pageToken=${pageToken}`;
       
       const search = await fetch(searchUrl).then(r => r.json());
@@ -423,44 +420,36 @@ export async function fetchAndSaveVideos(type, maxResults = 50) {
           viewCount: parseInt(d?.statistics?.viewCount || 0), 
           publishedAt: i.snippet.publishedAt, 
           channelId: state.settings.channelId, 
-          type: dur <= SHORTS_MAX_DURATION ? 'short' : 'video' 
+          type: dur <= 60 ? 'short' : 'video' 
         };
       });
       
       allVideos = allVideos.concat(videos);
-      
-      // Filter by requested type
-      filteredVideos = allVideos.filter(v => type === 'short' ? v.type === 'short' : v.type === 'video');
-      
       pageToken = search.nextPageToken;
-      pagesScanned++;
+      remaining -= batchSize;
       
-      document.getElementById('loadingText').textContent = `${allVideos.length} video tarandı, ${filteredVideos.length} ${type === 'short' ? 'shorts' : 'video'} bulundu...`;
+      document.getElementById('loadingText').textContent = `${allVideos.length} video çekildi...`;
       
       if (!pageToken) break; // No more pages
     }
     
     pagination[type].nextPageToken = pageToken || null;
     
-    // Limit to requested amount
-    const videosToSave = filteredVideos.slice(0, maxResults);
+    // Filter by type
+    const filteredVideos = allVideos.filter(v => type === 'short' ? v.type === 'short' : v.type === 'video');
     
-    if (videosToSave.length > 0) {
+    if (filteredVideos.length > 0) {
       await fetch(`${API}/api/youtube/videos`, { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ videos: videosToSave }) 
+        body: JSON.stringify({ videos: filteredVideos }) 
       });
     }
     
     hideLoading(); 
     await loadVideos(); 
     
-    if (videosToSave.length === 0) {
-      toast(`${type === 'short' ? 'Shorts' : 'Video'} bulunamadı`);
-    } else {
-      toast(`${videosToSave.length} ${type === 'short' ? 'shorts' : 'video'} kaydedildi ✓`);
-    }
+    toast(`${filteredVideos.length} ${type === 'short' ? 'shorts' : 'video'} kaydedildi ✓`);
     
   } catch (e) { 
     hideLoading(); 
@@ -527,7 +516,7 @@ async function fetchMoreWithToken(type, pageToken) {
         viewCount: parseInt(d?.statistics?.viewCount || 0), 
         publishedAt: i.snippet.publishedAt, 
         channelId: state.settings.channelId, 
-        type: dur <= SHORTS_MAX_DURATION ? 'short' : 'video' 
+        type: dur <= 60 ? 'short' : 'video' 
       };
     }).filter(v => type === 'short' ? v.type === 'short' : v.type === 'video');
     
@@ -591,7 +580,7 @@ async function fetchAllChannelVideos(type) {
           viewCount: parseInt(d?.statistics?.viewCount || 0), 
           publishedAt: i.snippet.publishedAt, 
           channelId: state.settings.channelId, 
-          type: dur <= SHORTS_MAX_DURATION ? 'short' : 'video' 
+          type: dur <= 60 ? 'short' : 'video' 
         };
       });
       
