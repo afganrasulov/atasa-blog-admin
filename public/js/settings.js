@@ -105,13 +105,24 @@ export async function loadSettings() {
     const res = await fetch(`${API}/api/settings`);
     const data = await res.json();
     state.autopilot = data.autopilot;
+    
+    // Automation settings
+    state.settings.autoScanEnabled = data.auto_scan_enabled || false;
+    state.settings.autoTranscribe = data.auto_transcribe || false;
+    state.settings.autoBlog = data.auto_blog || false;
+    state.settings.autoPublish = data.auto_publish || false;
+    state.settings.scanIntervalHours = data.scan_interval_hours || '6';
+    state.settings.lastScanTime = data.last_scan_time || '';
+    
     if (data.transcription_provider) {
       state.settings.transcriptionProvider = data.transcription_provider;
       document.getElementById('transcriptionProvider').value = data.transcription_provider;
       localStorage.setItem('transcriptionProvider', data.transcription_provider);
       updateProviderUI();
     }
+    
     updateAutopilotUI();
+    updateAutomationUI();
   } catch (e) {
     console.error('Settings load error:', e);
   }
@@ -159,6 +170,117 @@ export function toggleAiTitle() {
   toast(state.settings.aiTitleEnabled ? 'AI başlık oluşturma açık' : 'AI başlık oluşturma kapalı');
 }
 
+// =====================
+// AUTOMATION FUNCTIONS
+// =====================
+
+export function updateAutomationUI() {
+  // Auto Scan Toggle
+  const autoScanToggle = document.getElementById('autoScanToggle');
+  const autoScanOptions = document.getElementById('autoScanOptions');
+  if (autoScanToggle) {
+    autoScanToggle.className = `w-12 h-6 rounded-full relative cursor-pointer flex-shrink-0 ml-4 transition-colors ${state.settings.autoScanEnabled ? 'bg-green-500' : 'bg-slate-300'}`;
+    autoScanToggle.querySelector('span').style.transform = state.settings.autoScanEnabled ? 'translateX(24px)' : '';
+    
+    if (autoScanOptions) {
+      autoScanOptions.classList.toggle('hidden', !state.settings.autoScanEnabled);
+    }
+  }
+  
+  // Scan Interval
+  const scanInterval = document.getElementById('scanInterval');
+  if (scanInterval && state.settings.scanIntervalHours) {
+    scanInterval.value = state.settings.scanIntervalHours;
+  }
+  
+  // Last Scan Time
+  const lastScanTime = document.getElementById('lastScanTime');
+  if (lastScanTime && state.settings.lastScanTime) {
+    const date = new Date(state.settings.lastScanTime);
+    lastScanTime.textContent = `Son tarama: ${date.toLocaleString('tr-TR')}`;
+  }
+  
+  // Auto Transcribe Toggle
+  const autoTranscribeToggle = document.getElementById('autoTranscribeToggle');
+  if (autoTranscribeToggle) {
+    autoTranscribeToggle.className = `w-12 h-6 rounded-full relative cursor-pointer flex-shrink-0 ml-4 transition-colors ${state.settings.autoTranscribe ? 'bg-green-500' : 'bg-slate-300'}`;
+    autoTranscribeToggle.querySelector('span').style.transform = state.settings.autoTranscribe ? 'translateX(24px)' : '';
+  }
+  
+  // Auto Blog Toggle
+  const autoBlogToggle = document.getElementById('autoBlogToggle');
+  if (autoBlogToggle) {
+    autoBlogToggle.className = `w-12 h-6 rounded-full relative cursor-pointer flex-shrink-0 ml-4 transition-colors ${state.settings.autoBlog ? 'bg-green-500' : 'bg-slate-300'}`;
+    autoBlogToggle.querySelector('span').style.transform = state.settings.autoBlog ? 'translateX(24px)' : '';
+  }
+  
+  // Auto Publish Toggle
+  const autoPublishToggle = document.getElementById('autoPublishToggle');
+  if (autoPublishToggle) {
+    autoPublishToggle.className = `w-12 h-6 rounded-full relative cursor-pointer flex-shrink-0 ml-4 transition-colors ${state.settings.autoPublish ? 'bg-green-500' : 'bg-slate-300'}`;
+    autoPublishToggle.querySelector('span').style.transform = state.settings.autoPublish ? 'translateX(24px)' : '';
+  }
+}
+
+export async function toggleAutoScan() {
+  state.settings.autoScanEnabled = !state.settings.autoScanEnabled;
+  await saveAutomationSetting('auto_scan_enabled', state.settings.autoScanEnabled);
+  updateAutomationUI();
+  toast(state.settings.autoScanEnabled ? 'Otomatik tarama açık' : 'Otomatik tarama kapalı');
+}
+
+export async function toggleAutoTranscribe() {
+  state.settings.autoTranscribe = !state.settings.autoTranscribe;
+  await saveAutomationSetting('auto_transcribe', state.settings.autoTranscribe);
+  updateAutomationUI();
+  toast(state.settings.autoTranscribe ? 'Otomatik deşifre açık' : 'Otomatik deşifre kapalı');
+}
+
+export async function toggleAutoBlog() {
+  state.settings.autoBlog = !state.settings.autoBlog;
+  await saveAutomationSetting('auto_blog', state.settings.autoBlog);
+  updateAutomationUI();
+  toast(state.settings.autoBlog ? 'Otomatik blog oluşturma açık' : 'Otomatik blog oluşturma kapalı');
+}
+
+export async function toggleAutoPublish() {
+  state.settings.autoPublish = !state.settings.autoPublish;
+  await saveAutomationSetting('auto_publish', state.settings.autoPublish);
+  updateAutomationUI();
+  toast(state.settings.autoPublish ? 'Otomatik yayınlama açık (blog yayınlanır)' : 'Otomatik yayınlama kapalı (taslak olarak kaydedilir)');
+}
+
+async function saveAutomationSetting(key, value) {
+  try {
+    await fetch(`${API}/api/settings`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [key]: value })
+    });
+  } catch (e) {
+    console.error('Automation setting save error:', e);
+  }
+}
+
+export async function manualScan() {
+  toast('Video taraması başlatılıyor...');
+  try {
+    const res = await fetch(`${API}/api/youtube/scan`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      toast('Tarama başlatıldı. Yeni videolar bulunursa işlenecek.');
+    } else {
+      toast('Tarama başlatılamadı: ' + (data.error || 'Bilinmeyen hata'));
+    }
+  } catch (e) {
+    toast('Hata: ' + e.message);
+  }
+}
+
+// =====================
+// EXISTING FUNCTIONS
+// =====================
+
 export async function saveSettings() {
   state.settings.youtubeApiKey = document.getElementById('youtubeApiKey').value.trim();
   state.settings.openaiApiKey = document.getElementById('openaiApiKey').value.trim();
@@ -167,6 +289,12 @@ export async function saveSettings() {
   state.settings.transcriptionProvider = document.getElementById('transcriptionProvider').value;
   state.settings.blogPrompt = document.getElementById('blogPrompt').value.trim() || DEFAULT_BLOG_PROMPT;
   state.settings.aiSeoRules = document.getElementById('aiSeoRules').value.trim() || DEFAULT_SEO_RULES;
+  
+  // Get scan interval
+  const scanInterval = document.getElementById('scanInterval');
+  if (scanInterval) {
+    state.settings.scanIntervalHours = scanInterval.value;
+  }
   
   // Local storage'a kaydet
   localStorage.setItem('youtubeApiKey', state.settings.youtubeApiKey);
@@ -177,12 +305,21 @@ export async function saveSettings() {
   localStorage.setItem('blogPrompt', state.settings.blogPrompt);
   localStorage.setItem('aiSeoRules', state.settings.aiSeoRules);
   
-  // Server'a kaydet
+  // Server'a kaydet (API keys dahil - otomasyon için gerekli)
   try {
     await fetch(`${API}/api/settings`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ transcription_provider: state.settings.transcriptionProvider })
+      body: JSON.stringify({ 
+        transcription_provider: state.settings.transcriptionProvider,
+        youtube_api_key: state.settings.youtubeApiKey,
+        openai_api_key: state.settings.openaiApiKey,
+        assemblyai_api_key: state.settings.assemblyaiApiKey,
+        channel_id: state.settings.channelId,
+        blog_prompt: state.settings.blogPrompt,
+        ai_seo_rules: state.settings.aiSeoRules,
+        scan_interval_hours: state.settings.scanIntervalHours
+      })
     });
   } catch (e) {
     console.error('Settings save error:', e);
