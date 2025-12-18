@@ -56,6 +56,7 @@ export async function loadSettings() {
   state.settings.transcriptionProvider = localStorage.getItem('transcriptionProvider') || 'openai';
   state.settings.blogPrompt = localStorage.getItem('blogPrompt') || DEFAULT_BLOG_PROMPT;
   state.settings.aiSeoRules = localStorage.getItem('aiSeoRules') || DEFAULT_SEO_RULES;
+  state.settings.aiTitleEnabled = localStorage.getItem('aiTitleEnabled') === 'true';
   
   // Input'lara yaz
   document.getElementById('youtubeApiKey').value = state.settings.youtubeApiKey;
@@ -68,6 +69,9 @@ export async function loadSettings() {
   
   // Provider seçimine göre API key alanlarını göster/gizle
   updateProviderUI();
+  
+  // AI Title toggle UI
+  updateAiTitleUI();
   
   // Server'dan ayarları al
   try {
@@ -102,6 +106,30 @@ export function updateProviderUI() {
     openaiSection.classList.add('hidden');
     openaiSection.classList.remove('ring-2', 'ring-green-500');
   }
+}
+
+export function updateAiTitleUI() {
+  const toggle = document.getElementById('aiTitleToggle');
+  const info = document.getElementById('aiTitleInfo');
+  if (!toggle) return;
+  
+  toggle.className = `w-12 h-6 rounded-full relative cursor-pointer flex-shrink-0 ml-4 ${state.settings.aiTitleEnabled ? 'bg-green-500' : 'bg-slate-300'}`;
+  toggle.querySelector('span').style.transform = state.settings.aiTitleEnabled ? 'translateX(24px)' : '';
+  
+  if (info) {
+    if (state.settings.aiTitleEnabled) {
+      info.classList.remove('hidden');
+    } else {
+      info.classList.add('hidden');
+    }
+  }
+}
+
+export function toggleAiTitle() {
+  state.settings.aiTitleEnabled = !state.settings.aiTitleEnabled;
+  localStorage.setItem('aiTitleEnabled', state.settings.aiTitleEnabled);
+  updateAiTitleUI();
+  toast(state.settings.aiTitleEnabled ? 'AI başlık oluşturma açık' : 'AI başlık oluşturma kapalı');
 }
 
 export async function saveSettings() {
@@ -177,8 +205,22 @@ export function onProviderChange() {
 export function getBlogSystemPrompt() {
   const blogPrompt = state.settings.blogPrompt || DEFAULT_BLOG_PROMPT;
   const seoRules = state.settings.aiSeoRules || DEFAULT_SEO_RULES;
+  const aiTitleEnabled = state.settings.aiTitleEnabled;
   
-  return `${blogPrompt}
+  let prompt = blogPrompt;
+  
+  // Add AI title instruction if enabled
+  if (aiTitleEnabled) {
+    prompt += `
+
+### Başlık Oluşturma:
+- Video başlığını kullanma, SEO kurallarına göre yeni ve optimize edilmiş bir başlık oluştur
+- Başlık Google ve AI arama platformlarında (ChatGPT, Perplexity, AI Overview) üst sıralarda çıkacak şekilde optimize edilmeli
+- Başlık merak uyandırıcı, açık ve anahtar kelime içermeli
+- 50-60 karakter arasında tut`;
+  }
+  
+  return `${prompt}
 
 ${seoRules}`;
 }
