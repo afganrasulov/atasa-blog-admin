@@ -5,32 +5,36 @@ import { toast } from './utils.js';
 // Default prompts
 export const DEFAULT_BLOG_PROMPT = `YouTube video transkriptini Türkçe, SEO ve AI arama motorlarına (Google, ChatGPT, Perplexity, AI Overview) uyumlu blog yazısına dönüştür.
 
-## Format Kuralları:
-- HTML formatında yaz (Markdown değil)
-- 800-1200 kelime arası
-- Çıktı formatı:
-BAŞLIK: [SEO uyumlu, merak uyandırıcı başlık - 50-60 karakter]
+## Çıktı Formatı (AYNEN UYGULA):
+BAŞLIK: [Başlık metni - düz metin, işaret kullanma]
 ---
-[HTML içerik]
+META: [155 karakterlik meta açıklama - düz metin]
+---
+[HTML içerik buraya]
+
+## Önemli Kurallar:
+- BAŞLIK satırında sadece başlık metni olsun, ** veya başka işaret KULLANMA
+- META satırında sadece açıklama metni olsun
+- İçerikte Markdown KULLANMA, sadece HTML kullan
+- İçeriğin başında BAŞLIK veya META tekrar etmesin
 
 ## HTML Yapısı:
-- <h2> ve <h3> ile bölümle (h1 kullanma, sayfa başlığı için ayrılmış)
-- <p> paragraflar (3-4 cümle, kolay okunur)
-- <ul> veya <ol> listeler (taranabilirlik için)
+- <h2> ve <h3> başlıklar (h1 kullanma)
+- <p> paragraflar (3-4 cümle)
+- <ul> veya <ol> listeler
 - <strong> önemli terimler için
 
-## İçerik Yapısı:
-1. **Giriş paragrafı**: Ana soruyu/konuyu direkt cevapla (AI snippet için kritik)
-2. **Ana bölümler**: H2 başlıklarla konuyu detaylandır
-3. **Pratik bilgiler**: Adım adım rehber veya ipuçları
-4. **SSS bölümü**: 2-3 sık sorulan soru ve cevap (<h3>Soru?</h3> <p>Cevap</p> formatında)
-5. **Sonuç**: Özet ve eylem çağrısı
+## İçerik Yapısı (800-1200 kelime):
+1. Giriş: Ana soruyu ilk cümlede direkt cevapla (AI snippet için kritik)
+2. Ana bölümler: H2 başlıklarla konuyu detaylandır
+3. Pratik bilgiler: Liste veya adımlar halinde
+4. SSS: 2-3 soru (<h3>Soru?</h3> <p>Cevap</p>)
+5. Sonuç: Özet ve eylem çağrısı
 
 ## AI Arama Optimizasyonu:
-- İlk 150 karakterde ana anahtar kelime ve cevap olsun
-- "Nedir", "Nasıl yapılır", "Ne zaman" gibi soru kalıplarını cevapla
-- Tanımlar ve açıklamalar ekle
-- Spesifik rakamlar, tarihler, örnekler ver`;
+- İlk paragrafta ana anahtar kelime ve net cevap olsun
+- "Nedir", "Nasıl yapılır", "Ne kadar" sorularını cevapla
+- Güncel tarihler ve spesifik rakamlar ver`;
 
 export const DEFAULT_SEO_RULES = `## AI SEO Kuralları (Google + AI Arama Platformları)
 
