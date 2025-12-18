@@ -3,9 +3,6 @@ import { API, YT_API, state } from './config.js';
 import { toast, showLoading, hideLoading, openModal } from './utils.js';
 import { getBlogSystemPrompt } from './settings.js';
 
-// Shorts max duration: 3 minutes (180 seconds)
-const SHORTS_MAX_DURATION = 180;
-
 // Pagination and selection state
 const pagination = {
   video: { nextPageToken: null, loading: false },
@@ -23,6 +20,16 @@ export const videoFilter = {
   video: 'all', // 'all', 'no-blog', 'with-transcript'
   short: 'all'
 };
+
+// Determine if video is a Short based on aspect ratio (vertical = short)
+function isShort(thumbnails) {
+  // Check default thumbnail dimensions - Shorts are vertical (height > width)
+  const thumb = thumbnails?.default || thumbnails?.medium || thumbnails?.high;
+  if (thumb && thumb.width && thumb.height) {
+    return thumb.height > thumb.width; // Vertical = Short
+  }
+  return false;
+}
 
 export async function loadVideos() {
   try {
@@ -322,7 +329,7 @@ export async function bulkGenerateBlog(type) {
         body: JSON.stringify({
           title: blogTitle,
           content: blogContent,
-          category: video.duration <= SHORTS_MAX_DURATION ? 'Shorts' : 'YouTube',
+          category: type === 'short' ? 'Shorts' : 'YouTube',
           thumbnail: video.thumbnail,
           status: 'draft',
           videoId: video.id
@@ -414,6 +421,7 @@ export async function fetchAndSaveVideos(type, maxResults = 50) {
       const videos = search.items.map(i => {
         const d = details.items.find(x => x.id === i.id.videoId);
         const dur = parseDuration(d?.contentDetails?.duration || 'PT0S');
+        const videoIsShort = isShort(i.snippet.thumbnails);
         return { 
           id: i.id.videoId, 
           title: i.snippet.title, 
@@ -423,7 +431,7 @@ export async function fetchAndSaveVideos(type, maxResults = 50) {
           viewCount: parseInt(d?.statistics?.viewCount || 0), 
           publishedAt: i.snippet.publishedAt, 
           channelId: state.settings.channelId, 
-          type: dur <= SHORTS_MAX_DURATION ? 'short' : 'video' 
+          type: videoIsShort ? 'short' : 'video' 
         };
       });
       
@@ -518,6 +526,7 @@ async function fetchMoreWithToken(type, pageToken) {
     const videos = search.items.map(i => {
       const d = details.items.find(x => x.id === i.id.videoId);
       const dur = parseDuration(d?.contentDetails?.duration || 'PT0S');
+      const videoIsShort = isShort(i.snippet.thumbnails);
       return { 
         id: i.id.videoId, 
         title: i.snippet.title, 
@@ -527,7 +536,7 @@ async function fetchMoreWithToken(type, pageToken) {
         viewCount: parseInt(d?.statistics?.viewCount || 0), 
         publishedAt: i.snippet.publishedAt, 
         channelId: state.settings.channelId, 
-        type: dur <= SHORTS_MAX_DURATION ? 'short' : 'video' 
+        type: videoIsShort ? 'short' : 'video' 
       };
     }).filter(v => type === 'short' ? v.type === 'short' : v.type === 'video');
     
@@ -582,6 +591,7 @@ async function fetchAllChannelVideos(type) {
       const videos = search.items.map(i => {
         const d = details.items.find(x => x.id === i.id.videoId);
         const dur = parseDuration(d?.contentDetails?.duration || 'PT0S');
+        const videoIsShort = isShort(i.snippet.thumbnails);
         return { 
           id: i.id.videoId, 
           title: i.snippet.title, 
@@ -591,7 +601,7 @@ async function fetchAllChannelVideos(type) {
           viewCount: parseInt(d?.statistics?.viewCount || 0), 
           publishedAt: i.snippet.publishedAt, 
           channelId: state.settings.channelId, 
-          type: dur <= SHORTS_MAX_DURATION ? 'short' : 'video' 
+          type: videoIsShort ? 'short' : 'video' 
         };
       });
       
