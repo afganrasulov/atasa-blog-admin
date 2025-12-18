@@ -138,6 +138,26 @@
           <p class="text-xs text-slate-500 mt-2">Boş bırakılırsa @atasa_tr kanalı kullanılır.</p>
         </div>
         
+        <!-- Blog Prompt -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-sm font-medium">✍️ Blog Yazısı Oluşturma Promptu</label>
+            <button onclick="app.resetBlogPrompt()" class="text-xs text-blue-600 hover:underline">Varsayılana Dön</button>
+          </div>
+          <textarea id="blogPrompt" rows="4" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="Blog yazısı oluşturma promptunu girin..."></textarea>
+          <p class="text-xs text-slate-500 mt-2">AI'ın blog yazısını nasıl oluşturacağını belirler. {video_title} ve {transcript} değişkenlerini kullanabilirsiniz.</p>
+        </div>
+        
+        <!-- AI SEO Rules -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-sm font-medium">🎯 AI SEO Kuralları</label>
+            <button onclick="app.resetSeoRules()" class="text-xs text-blue-600 hover:underline">Varsayılana Dön</button>
+          </div>
+          <textarea id="aiSeoRules" rows="6" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="AI SEO kurallarını girin..."></textarea>
+          <p class="text-xs text-slate-500 mt-2">Google, ChatGPT, Perplexity ve AI Overview'da üst sıralarda çıkmak için SEO kuralları. Bu kurallar blog promptuyla birleştirilir.</p>
+        </div>
+        
         <button onclick="app.saveSettings()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors">💾 Kaydet</button>
         
         <!-- Allowed Users -->
