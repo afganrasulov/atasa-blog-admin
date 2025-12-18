@@ -75,7 +75,56 @@ export const DEFAULT_SEO_RULES = `## AI SEO Kuralları (Google + AI Arama Platfo
 - Sonuç bölümünde özet ve çağrı-eylem ekle`;
 
 export async function loadSettings() {
-  // Local storage'dan yükle
+  // Server'dan TÜM ayarları al (API key'ler dahil)
+  try {
+    const res = await fetch(`${API}/api/settings`);
+    const data = await res.json();
+    
+    // Core settings
+    state.autopilot = data.autopilot || false;
+    
+    // API Keys (sunucudan yükle)
+    state.settings.youtubeApiKey = data.youtube_api_key || '';
+    state.settings.openaiApiKey = data.openai_api_key || '';
+    state.settings.assemblyaiApiKey = data.assemblyai_api_key || '';
+    state.settings.channelId = data.channel_id || '';
+    state.settings.transcriptionProvider = data.transcription_provider || 'openai';
+    state.settings.blogPrompt = data.blog_prompt || DEFAULT_BLOG_PROMPT;
+    state.settings.aiSeoRules = data.ai_seo_rules || DEFAULT_SEO_RULES;
+    state.settings.aiTitleEnabled = data.ai_title_enabled || false;
+    
+    // Automation settings
+    state.settings.autoScanEnabled = data.auto_scan_enabled || false;
+    state.settings.autoTranscribe = data.auto_transcribe || false;
+    state.settings.autoBlog = data.auto_blog || false;
+    state.settings.autoPublish = data.auto_publish || false;
+    state.settings.scanIntervalHours = data.scan_interval_hours || '6';
+    state.settings.lastScanTime = data.last_scan_time || '';
+    
+    // Input'lara yaz (maskelenmiş göster)
+    document.getElementById('youtubeApiKey').value = state.settings.youtubeApiKey;
+    document.getElementById('openaiApiKey').value = state.settings.openaiApiKey;
+    document.getElementById('assemblyaiApiKey').value = state.settings.assemblyaiApiKey;
+    document.getElementById('youtubeChannelId').value = state.settings.channelId;
+    document.getElementById('transcriptionProvider').value = state.settings.transcriptionProvider;
+    document.getElementById('blogPrompt').value = state.settings.blogPrompt;
+    document.getElementById('aiSeoRules').value = state.settings.aiSeoRules;
+    
+    // UI güncellemeleri
+    updateProviderUI();
+    updateAiTitleUI();
+    updateAutopilotUI();
+    updateAutomationUI();
+    
+    console.log('✅ Settings loaded from server');
+  } catch (e) {
+    console.error('Settings load error:', e);
+    // Fallback: localStorage'dan yükle (eski veriler için)
+    loadFromLocalStorage();
+  }
+}
+
+function loadFromLocalStorage() {
   state.settings.youtubeApiKey = localStorage.getItem('youtubeApiKey') || '';
   state.settings.openaiApiKey = localStorage.getItem('openaiApiKey') || '';
   state.settings.assemblyaiApiKey = localStorage.getItem('assemblyaiApiKey') || '';
@@ -94,38 +143,8 @@ export async function loadSettings() {
   document.getElementById('blogPrompt').value = state.settings.blogPrompt;
   document.getElementById('aiSeoRules').value = state.settings.aiSeoRules;
   
-  // Provider seçimine göre API key alanlarını göster/gizle
   updateProviderUI();
-  
-  // AI Title toggle UI
   updateAiTitleUI();
-  
-  // Server'dan ayarları al
-  try {
-    const res = await fetch(`${API}/api/settings`);
-    const data = await res.json();
-    state.autopilot = data.autopilot;
-    
-    // Automation settings
-    state.settings.autoScanEnabled = data.auto_scan_enabled || false;
-    state.settings.autoTranscribe = data.auto_transcribe || false;
-    state.settings.autoBlog = data.auto_blog || false;
-    state.settings.autoPublish = data.auto_publish || false;
-    state.settings.scanIntervalHours = data.scan_interval_hours || '6';
-    state.settings.lastScanTime = data.last_scan_time || '';
-    
-    if (data.transcription_provider) {
-      state.settings.transcriptionProvider = data.transcription_provider;
-      document.getElementById('transcriptionProvider').value = data.transcription_provider;
-      localStorage.setItem('transcriptionProvider', data.transcription_provider);
-      updateProviderUI();
-    }
-    
-    updateAutopilotUI();
-    updateAutomationUI();
-  } catch (e) {
-    console.error('Settings load error:', e);
-  }
 }
 
 export function updateProviderUI() {
@@ -163,9 +182,9 @@ export function updateAiTitleUI() {
   }
 }
 
-export function toggleAiTitle() {
+export async function toggleAiTitle() {
   state.settings.aiTitleEnabled = !state.settings.aiTitleEnabled;
-  localStorage.setItem('aiTitleEnabled', state.settings.aiTitleEnabled);
+  await saveSettingToServer('ai_title_enabled', state.settings.aiTitleEnabled);
   updateAiTitleUI();
   toast(state.settings.aiTitleEnabled ? 'AI başlık oluşturma açık' : 'AI başlık oluşturma kapalı');
 }
@@ -224,33 +243,33 @@ export function updateAutomationUI() {
 
 export async function toggleAutoScan() {
   state.settings.autoScanEnabled = !state.settings.autoScanEnabled;
-  await saveAutomationSetting('auto_scan_enabled', state.settings.autoScanEnabled);
+  await saveSettingToServer('auto_scan_enabled', state.settings.autoScanEnabled);
   updateAutomationUI();
   toast(state.settings.autoScanEnabled ? 'Otomatik tarama açık' : 'Otomatik tarama kapalı');
 }
 
 export async function toggleAutoTranscribe() {
   state.settings.autoTranscribe = !state.settings.autoTranscribe;
-  await saveAutomationSetting('auto_transcribe', state.settings.autoTranscribe);
+  await saveSettingToServer('auto_transcribe', state.settings.autoTranscribe);
   updateAutomationUI();
   toast(state.settings.autoTranscribe ? 'Otomatik deşifre açık' : 'Otomatik deşifre kapalı');
 }
 
 export async function toggleAutoBlog() {
   state.settings.autoBlog = !state.settings.autoBlog;
-  await saveAutomationSetting('auto_blog', state.settings.autoBlog);
+  await saveSettingToServer('auto_blog', state.settings.autoBlog);
   updateAutomationUI();
   toast(state.settings.autoBlog ? 'Otomatik blog oluşturma açık' : 'Otomatik blog oluşturma kapalı');
 }
 
 export async function toggleAutoPublish() {
   state.settings.autoPublish = !state.settings.autoPublish;
-  await saveAutomationSetting('auto_publish', state.settings.autoPublish);
+  await saveSettingToServer('auto_publish', state.settings.autoPublish);
   updateAutomationUI();
   toast(state.settings.autoPublish ? 'Otomatik yayınlama açık (blog yayınlanır)' : 'Otomatik yayınlama kapalı (taslak olarak kaydedilir)');
 }
 
-async function saveAutomationSetting(key, value) {
+async function saveSettingToServer(key, value) {
   try {
     await fetch(`${API}/api/settings`, {
       method: 'PUT',
@@ -258,7 +277,7 @@ async function saveAutomationSetting(key, value) {
       body: JSON.stringify({ [key]: value })
     });
   } catch (e) {
-    console.error('Automation setting save error:', e);
+    console.error('Setting save error:', e);
   }
 }
 
@@ -278,10 +297,11 @@ export async function manualScan() {
 }
 
 // =====================
-// EXISTING FUNCTIONS
+// SAVE SETTINGS
 // =====================
 
 export async function saveSettings() {
+  // Form'dan değerleri al
   state.settings.youtubeApiKey = document.getElementById('youtubeApiKey').value.trim();
   state.settings.openaiApiKey = document.getElementById('openaiApiKey').value.trim();
   state.settings.assemblyaiApiKey = document.getElementById('assemblyaiApiKey').value.trim();
@@ -296,16 +316,7 @@ export async function saveSettings() {
     state.settings.scanIntervalHours = scanInterval.value;
   }
   
-  // Local storage'a kaydet
-  localStorage.setItem('youtubeApiKey', state.settings.youtubeApiKey);
-  localStorage.setItem('openaiApiKey', state.settings.openaiApiKey);
-  localStorage.setItem('assemblyaiApiKey', state.settings.assemblyaiApiKey);
-  localStorage.setItem('channelId', state.settings.channelId);
-  localStorage.setItem('transcriptionProvider', state.settings.transcriptionProvider);
-  localStorage.setItem('blogPrompt', state.settings.blogPrompt);
-  localStorage.setItem('aiSeoRules', state.settings.aiSeoRules);
-  
-  // Server'a kaydet (API keys dahil - otomasyon için gerekli)
+  // Server'a TÜM ayarları kaydet (API key'ler dahil)
   try {
     await fetch(`${API}/api/settings`, {
       method: 'PUT',
@@ -318,27 +329,27 @@ export async function saveSettings() {
         channel_id: state.settings.channelId,
         blog_prompt: state.settings.blogPrompt,
         ai_seo_rules: state.settings.aiSeoRules,
-        scan_interval_hours: state.settings.scanIntervalHours
+        scan_interval_hours: state.settings.scanIntervalHours,
+        ai_title_enabled: state.settings.aiTitleEnabled
       })
     });
+    
+    toast('Kaydedildi ✓');
   } catch (e) {
     console.error('Settings save error:', e);
+    toast('Kaydetme hatası!');
   }
-  
-  toast('Kaydedildi ✓');
 }
 
 export function resetBlogPrompt() {
   document.getElementById('blogPrompt').value = DEFAULT_BLOG_PROMPT;
   state.settings.blogPrompt = DEFAULT_BLOG_PROMPT;
-  localStorage.setItem('blogPrompt', DEFAULT_BLOG_PROMPT);
   toast('Blog promptu varsayılana döndürüldü');
 }
 
 export function resetSeoRules() {
   document.getElementById('aiSeoRules').value = DEFAULT_SEO_RULES;
   state.settings.aiSeoRules = DEFAULT_SEO_RULES;
-  localStorage.setItem('aiSeoRules', DEFAULT_SEO_RULES);
   toast('SEO kuralları varsayılana döndürüldü');
 }
 
