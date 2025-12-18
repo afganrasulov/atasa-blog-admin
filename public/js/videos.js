@@ -563,12 +563,26 @@ export function updateModalBadges() {
 function updateGenerateBlogButton() {
   const generateBtn = document.getElementById('generateBlogBtn');
   if (generateBtn && state.currentVideo) {
-    if (state.currentVideo.blog_created) {
-      generateBtn.textContent = '🤖 Yeniden Blog Yazısı Oluştur';
-      generateBtn.className = 'px-4 py-2 bg-orange-500 text-white rounded-lg text-sm mb-4 hover:bg-orange-600';
-    } else {
+    const hasTranscript = state.currentVideo.transcript && state.currentVideo.transcript_status === 'completed';
+    
+    if (!hasTranscript) {
+      // No transcript - disable button
       generateBtn.textContent = '🤖 Blog Yazısı Oluştur';
-      generateBtn.className = 'px-4 py-2 bg-green-600 text-white rounded-lg text-sm mb-4 hover:bg-green-700';
+      generateBtn.className = 'px-4 py-2 bg-slate-300 text-slate-500 rounded-lg text-sm mb-4 cursor-not-allowed';
+      generateBtn.disabled = true;
+      generateBtn.title = 'Önce videoyu deşifre edin';
+    } else if (state.currentVideo.blog_created) {
+      // Has transcript and blog already created
+      generateBtn.textContent = '🤖 Yeniden Blog Yazısı Oluştur';
+      generateBtn.className = 'px-4 py-2 bg-orange-500 text-white rounded-lg text-sm mb-4 hover:bg-orange-600 cursor-pointer';
+      generateBtn.disabled = false;
+      generateBtn.title = '';
+    } else {
+      // Has transcript, no blog yet
+      generateBtn.textContent = '🤖 Blog Yazısı Oluştur';
+      generateBtn.className = 'px-4 py-2 bg-green-600 text-white rounded-lg text-sm mb-4 hover:bg-green-700 cursor-pointer';
+      generateBtn.disabled = false;
+      generateBtn.title = '';
     }
   }
 }
