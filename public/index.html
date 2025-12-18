@@ -43,7 +43,7 @@
         <div class="flex items-center gap-4">
           <div class="flex items-center gap-2">
             <span class="text-sm">Otopilot</span>
-            <button id="autopilotToggle" onclick="app.toggleAutopilot()" class="w-12 h-6 rounded-full bg-slate-300 relative">
+            <button id="autopilotToggle" onclick="app.toggleAutopilot()" class="w-12 h-6 rounded-full bg-slate-300 relative cursor-pointer">
               <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
             </button>
           </div>
@@ -98,28 +98,51 @@
     <main id="settingsPage" class="max-w-2xl mx-auto px-4 py-8 hidden">
       <h2 class="text-2xl font-bold mb-6">⚙️ Ayarlar</h2>
       <div class="space-y-4">
-        <div class="bg-white rounded-xl p-4 border">
-          <label class="block text-sm font-medium mb-2">YouTube API Key</label>
-          <input type="password" id="youtubeApiKey" class="w-full px-3 py-2 border rounded-lg font-mono text-sm">
-        </div>
-        <div class="bg-white rounded-xl p-4 border">
-          <label class="block text-sm font-medium mb-2">OpenAI API Key</label>
-          <input type="password" id="openaiApiKey" class="w-full px-3 py-2 border rounded-lg font-mono text-sm">
-        </div>
-        <div class="bg-white rounded-xl p-4 border">
-          <label class="block text-sm font-medium mb-2">AssemblyAI API Key</label>
-          <input type="password" id="assemblyaiApiKey" class="w-full px-3 py-2 border rounded-lg font-mono text-sm">
-        </div>
-        <div class="bg-white rounded-xl p-4 border">
-          <label class="block text-sm font-medium mb-2">YouTube Kanal ID</label>
-          <input type="text" id="youtubeChannelId" class="w-full px-3 py-2 border rounded-lg font-mono text-sm">
-        </div>
-        <button onclick="app.saveSettings()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium">Kaydet</button>
         
+        <!-- Transcription Provider -->
+        <div class="bg-white rounded-xl p-4 border">
+          <label class="block text-sm font-medium mb-2">🎙️ Transkripsiyon Sağlayıcısı</label>
+          <select id="transcriptionProvider" onchange="app.onProviderChange()" class="w-full px-3 py-2 border rounded-lg text-sm">
+            <option value="openai">OpenAI Whisper (Önerilen)</option>
+            <option value="assemblyai">AssemblyAI</option>
+          </select>
+          <p class="text-xs text-slate-500 mt-2">OpenAI Whisper daha hızlı ve doğru sonuçlar verir.</p>
+        </div>
+        
+        <!-- YouTube API Key -->
+        <div class="bg-white rounded-xl p-4 border">
+          <label class="block text-sm font-medium mb-2">🔴 YouTube API Key</label>
+          <input type="password" id="youtubeApiKey" class="w-full px-3 py-2 border rounded-lg font-mono text-sm" placeholder="AIza...">
+        </div>
+        
+        <!-- OpenAI API Key -->
+        <div id="openaiKeySection" class="bg-white rounded-xl p-4 border transition-all">
+          <label class="block text-sm font-medium mb-2">🤖 OpenAI API Key</label>
+          <input type="password" id="openaiApiKey" class="w-full px-3 py-2 border rounded-lg font-mono text-sm" placeholder="sk-...">
+          <p class="text-xs text-slate-500 mt-2">Hem transkripsiyon (Whisper) hem blog oluşturma için kullanılır.</p>
+        </div>
+        
+        <!-- AssemblyAI API Key -->
+        <div id="assemblyaiKeySection" class="bg-white rounded-xl p-4 border hidden transition-all">
+          <label class="block text-sm font-medium mb-2">🔊 AssemblyAI API Key</label>
+          <input type="password" id="assemblyaiApiKey" class="w-full px-3 py-2 border rounded-lg font-mono text-sm" placeholder="...">
+          <p class="text-xs text-slate-500 mt-2">Sadece transkripsiyon için kullanılır.</p>
+        </div>
+        
+        <!-- YouTube Channel ID -->
+        <div class="bg-white rounded-xl p-4 border">
+          <label class="block text-sm font-medium mb-2">📺 YouTube Kanal ID</label>
+          <input type="text" id="youtubeChannelId" class="w-full px-3 py-2 border rounded-lg font-mono text-sm" placeholder="UC...">
+          <p class="text-xs text-slate-500 mt-2">Boş bırakılırsa @atasa_tr kanalı kullanılır.</p>
+        </div>
+        
+        <button onclick="app.saveSettings()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors">💾 Kaydet</button>
+        
+        <!-- Allowed Users -->
         <div class="bg-white rounded-xl p-4 border mt-6">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-semibold">👥 İzinli Kullanıcılar</h3>
-            <button onclick="app.openAddUserModal()" class="px-3 py-1 bg-indigo-600 text-white rounded text-sm">+ Ekle</button>
+            <button onclick="app.openAddUserModal()" class="px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">+ Ekle</button>
           </div>
           <div id="allowedUsersList" class="space-y-2"></div>
         </div>
