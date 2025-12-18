@@ -2,10 +2,22 @@
 import { API, YT_API, state } from './config.js';
 import { toast, showLoading, hideLoading, openModal } from './utils.js';
 
-// Pagination state
+// Pagination and selection state
 const pagination = {
   video: { nextPageToken: null, loading: false },
   short: { nextPageToken: null, loading: false }
+};
+
+// Selected videos for bulk operations
+export const selectedVideos = {
+  video: new Set(),
+  short: new Set()
+};
+
+// Filter state
+export const videoFilter = {
+  video: 'all', // 'all', 'no-blog', 'with-transcript'
+  short: 'all'
 };
 
 export async function loadVideos() {
@@ -42,35 +54,114 @@ async function checkVideoStatuses() {
   }
 }
 
-function getStatusBadge(video) {
+function getStatusBadges(video) {
   const badges = [];
+  
+  // Blog created badge (top priority)
+  if (video.blog_created) {
+    badges.push('<span class="status-badge bg-emerald-600 text-white" style="top: 8px; left: 8px; right: auto;">📝 Blog</span>');
+  }
+  
+  // Audio status
   if (video.audio_status === 'completed') badges.push('<span class="status-badge bg-blue-500 text-white">🎵 MP3</span>');
   else if (video.audio_status === 'processing') badges.push('<span class="status-badge bg-blue-400 text-white"><span class="inline-block animate-spin">⏳</span> MP3</span>');
+  
+  // Transcript status
   if (video.transcript_status === 'completed' && video.transcript) badges.push('<span class="status-badge bg-green-500 text-white" style="right: 50px;">✅ Deşifre</span>');
   else if (video.transcript_status === 'processing') badges.push('<span class="status-badge bg-purple-500 text-white" style="right: 50px;"><span class="inline-block animate-spin">⏳</span> Deşifre</span>');
   else if (video.transcript_status === 'failed') badges.push('<span class="status-badge bg-red-500 text-white" style="right: 50px;">❌ Hata</span>');
+  
   return badges.join('');
+}
+
+function filterVideos(videos, type) {
+  const filter = videoFilter[type];
+  if (filter === 'all') return videos;
+  if (filter === 'no-blog') return videos.filter(v => !v.blog_created);
+  if (filter === 'with-transcript') return videos.filter(v => v.transcript && v.transcript_status === 'completed' && !v.blog_created);
+  return videos;
 }
 
 function renderVideos(type) {
   const container = document.getElementById(type === 'short' ? 'shortsVideosList' : 'youtubeVideosList');
-  const videos = state.cachedVideos[type];
-  if (!videos?.length) { 
+  const allVideos = state.cachedVideos[type];
+  const videos = filterVideos(allVideos, type);
+  
+  if (!allVideos?.length) { 
     container.innerHTML = '<p class="col-span-full text-center text-slate-500 p-12 bg-white rounded-xl">Henüz video yok. "Güncelle" butonuna tıklayın.</p>'; 
     return; 
   }
   
-  const videosHtml = videos.map(v => `
-    <div onclick="window.app.openVideoModal('${v.id}')" class="bg-white rounded-xl border overflow-hidden cursor-pointer hover:shadow-lg transition-all">
-      <div class="relative">
-        <img src="${v.thumbnail}" class="w-full ${type === 'short' ? 'aspect-[9/16]' : 'aspect-video'} object-cover">
-        ${getStatusBadge(v)}
-      </div>
-      <div class="p-3"><h3 class="font-medium line-clamp-2 text-sm">${v.title}</h3></div>
-    </div>
-  `).join('');
+  // Stats
+  const totalCount = allVideos.length;
+  const blogCount = allVideos.filter(v => v.blog_created).length;
+  const transcriptCount = allVideos.filter(v => v.transcript && v.transcript_status === 'completed').length;
+  const selectedCount = selectedVideos[type].size;
   
-  // Add "Load More" button
+  const videosHtml = videos.map(v => {
+    const isSelected = selectedVideos[type].has(v.id);
+    return `
+    <div class="bg-white rounded-xl border overflow-hidden hover:shadow-lg transition-all ${isSelected ? 'ring-2 ring-blue-500' : ''}">
+      <div class="relative cursor-pointer" onclick="window.app.openVideoModal('${v.id}')">
+        <img src="${v.thumbnail}" class="w-full ${type === 'short' ? 'aspect-[9/16]' : 'aspect-video'} object-cover">
+        ${getStatusBadges(v)}
+      </div>
+      <div class="p-3">
+        <div class="flex items-start gap-2">
+          <input type="checkbox" 
+            id="select-${v.id}" 
+            ${isSelected ? 'checked' : ''} 
+            onclick="event.stopPropagation(); window.app.toggleVideoSelection('${type}', '${v.id}')"
+            class="mt-1 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+          <label for="select-${v.id}" class="font-medium line-clamp-2 text-sm cursor-pointer flex-1">${v.title}</label>
+        </div>
+      </div>
+    </div>
+  `}).join('');
+  
+  // Selection toolbar
+  const toolbar = `
+    <div class="col-span-full bg-white rounded-xl border p-4 mb-2">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" 
+              ${selectedCount === videos.length && videos.length > 0 ? 'checked' : ''} 
+              onclick="window.app.toggleSelectAll('${type}')"
+              class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+            <span class="text-sm font-medium">Tümünü Seç</span>
+          </label>
+          <span class="text-sm text-slate-500">${selectedCount} seçili</span>
+          <span class="text-slate-300">|</span>
+          <span class="text-sm text-slate-500">Toplam: ${totalCount}</span>
+          <span class="text-sm text-slate-500">Deşifre: ${transcriptCount}</span>
+          <span class="text-sm text-slate-500">Blog: ${blogCount}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <select onchange="window.app.setVideoFilter('${type}', this.value)" class="px-3 py-1.5 border rounded-lg text-sm">
+            <option value="all" ${videoFilter[type] === 'all' ? 'selected' : ''}>Tümü</option>
+            <option value="no-blog" ${videoFilter[type] === 'no-blog' ? 'selected' : ''}>Blog Oluşturulmamış</option>
+            <option value="with-transcript" ${videoFilter[type] === 'with-transcript' ? 'selected' : ''}>Deşifreli (Blog Yok)</option>
+          </select>
+        </div>
+      </div>
+      ${selectedCount > 0 ? `
+      <div class="flex gap-2 mt-3 pt-3 border-t">
+        <button onclick="window.app.bulkTranscribe('${type}')" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700">
+          🎙️ Seçilenleri Deşifre Et (${selectedCount})
+        </button>
+        <button onclick="window.app.bulkGenerateBlog('${type}')" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">
+          📝 Seçilenleri Blog Yap (${selectedCount})
+        </button>
+        <button onclick="window.app.clearSelection('${type}')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300">
+          ✕ Seçimi Temizle
+        </button>
+      </div>
+      ` : ''}
+    </div>
+  `;
+  
+  // Load more button
   const loadMoreBtn = `
     <div class="col-span-full flex justify-center py-4">
       <button onclick="window.app.loadMoreVideos('${type}')" id="loadMore-${type}" class="px-6 py-3 bg-slate-200 hover:bg-slate-300 rounded-xl font-medium transition-colors">
@@ -79,7 +170,189 @@ function renderVideos(type) {
     </div>
   `;
   
-  container.innerHTML = videosHtml + loadMoreBtn;
+  container.innerHTML = toolbar + videosHtml + loadMoreBtn;
+}
+
+// Selection functions
+export function toggleVideoSelection(type, videoId) {
+  if (selectedVideos[type].has(videoId)) {
+    selectedVideos[type].delete(videoId);
+  } else {
+    selectedVideos[type].add(videoId);
+  }
+  renderVideos(type);
+}
+
+export function toggleSelectAll(type) {
+  const videos = filterVideos(state.cachedVideos[type], type);
+  if (selectedVideos[type].size === videos.length) {
+    selectedVideos[type].clear();
+  } else {
+    videos.forEach(v => selectedVideos[type].add(v.id));
+  }
+  renderVideos(type);
+}
+
+export function clearSelection(type) {
+  selectedVideos[type].clear();
+  renderVideos(type);
+}
+
+export function setVideoFilter(type, filter) {
+  videoFilter[type] = filter;
+  selectedVideos[type].clear(); // Clear selection when filter changes
+  renderVideos(type);
+}
+
+// Bulk operations
+export async function bulkTranscribe(type) {
+  const ids = Array.from(selectedVideos[type]);
+  if (ids.length === 0) { toast('Video seçin'); return; }
+  
+  const config = getTranscriptionConfig();
+  if (!config) return;
+  
+  toast(`${ids.length} video deşifre edilmeye başlıyor...`);
+  
+  try {
+    await fetch(`${API}/api/youtube/videos/bulk-transcribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        videoIds: ids,
+        apiKey: config.apiKey,
+        provider: config.provider
+      })
+    });
+    
+    selectedVideos[type].clear();
+    loadVideos();
+    toast(`${ids.length} video için deşifre başlatıldı ✓`);
+  } catch (e) {
+    toast('Hata: ' + e.message);
+  }
+}
+
+export async function bulkGenerateBlog(type) {
+  const ids = Array.from(selectedVideos[type]);
+  if (ids.length === 0) { toast('Video seçin'); return; }
+  
+  // Filter only videos with transcripts
+  const videosWithTranscript = ids.filter(id => {
+    const video = state.cachedVideos[type].find(v => v.id === id);
+    return video && video.transcript && video.transcript_status === 'completed';
+  });
+  
+  if (videosWithTranscript.length === 0) {
+    toast('Seçili videolarda deşifre bulunamadı. Önce deşifre edin.');
+    return;
+  }
+  
+  if (!state.settings.openaiApiKey) {
+    toast('OpenAI API Key gerekli!');
+    import('./utils.js').then(u => u.switchPage('settings'));
+    return;
+  }
+  
+  showLoading(`${videosWithTranscript.length} video için blog oluşturuluyor...`);
+  
+  let successCount = 0;
+  let failCount = 0;
+  
+  for (const videoId of videosWithTranscript) {
+    const video = state.cachedVideos[type].find(v => v.id === videoId);
+    if (!video) continue;
+    
+    try {
+      document.getElementById('loadingText').textContent = `Blog oluşturuluyor: ${video.title.substring(0, 30)}...`;
+      
+      // Generate blog content
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${state.settings.openaiApiKey}` 
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: 'YouTube transkriptini Türkçe SEO uyumlu blog yazısına dönüştür. Markdown formatında, 400-800 kelime. Format: BAŞLIK: [başlık]\n---\n[içerik]' },
+            { role: 'user', content: `Video: ${video.title}\n\nTranskript:\n${video.transcript}` }
+          ],
+          temperature: 0.7,
+          max_tokens: 2500
+        })
+      });
+      
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      
+      const content = data.choices[0].message.content;
+      const titleMatch = content.match(/BAŞLIK:\s*(.+)/);
+      const blogTitle = titleMatch ? titleMatch[1].trim() : video.title;
+      const blogContent = content.replace(/BAŞLIK:\s*.+\n---\n?/, '').trim();
+      
+      // Save blog post
+      const postRes = await fetch(`${API}/api/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: blogTitle,
+          content: blogContent,
+          category: video.duration <= 60 ? 'Shorts' : 'YouTube',
+          thumbnail: video.thumbnail,
+          status: 'draft',
+          videoId: video.id
+        })
+      });
+      
+      if (postRes.ok) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+      
+      // Small delay to avoid rate limiting
+      await new Promise(r => setTimeout(r, 1000));
+      
+    } catch (e) {
+      console.error(`Blog creation failed for ${videoId}:`, e);
+      failCount++;
+    }
+  }
+  
+  hideLoading();
+  selectedVideos[type].clear();
+  loadVideos();
+  
+  if (failCount === 0) {
+    toast(`${successCount} blog oluşturuldu ✓`);
+  } else {
+    toast(`${successCount} başarılı, ${failCount} başarısız`);
+  }
+}
+
+function getTranscriptionConfig() {
+  const provider = state.settings.transcriptionProvider || 'openai';
+  let apiKey;
+  
+  if (provider === 'openai') {
+    apiKey = state.settings.openaiApiKey;
+    if (!apiKey) {
+      toast('OpenAI API Key gerekli!');
+      import('./utils.js').then(u => u.switchPage('settings'));
+      return null;
+    }
+  } else {
+    apiKey = state.settings.assemblyaiApiKey;
+    if (!apiKey) {
+      toast('AssemblyAI API Key gerekli!');
+      import('./utils.js').then(u => u.switchPage('settings'));
+      return null;
+    }
+  }
+  
+  return { provider, apiKey };
 }
 
 export async function fetchAndSaveVideos(type, pageToken = null) {
@@ -91,7 +364,6 @@ export async function fetchAndSaveVideos(type, pageToken = null) {
   }
   
   try {
-    // Get channel ID if not set
     if (!state.settings.channelId) {
       const ch = await fetch(`${YT_API}/search?part=snippet&type=channel&q=@atasa_tr&key=${state.settings.youtubeApiKey}`).then(r => r.json());
       if (ch.items?.[0]) { 
@@ -100,11 +372,8 @@ export async function fetchAndSaveVideos(type, pageToken = null) {
       }
     }
     
-    // Build search URL with pagination
     let searchUrl = `${YT_API}/search?part=snippet&channelId=${state.settings.channelId}&maxResults=50&order=date&type=video&key=${state.settings.youtubeApiKey}`;
-    if (pageToken) {
-      searchUrl += `&pageToken=${pageToken}`;
-    }
+    if (pageToken) searchUrl += `&pageToken=${pageToken}`;
     
     const search = await fetch(searchUrl).then(r => r.json());
     
@@ -114,7 +383,6 @@ export async function fetchAndSaveVideos(type, pageToken = null) {
       return; 
     }
     
-    // Save next page token
     pagination[type].nextPageToken = search.nextPageToken || null;
     
     const ids = search.items.map(i => i.id.videoId).join(',');
@@ -168,11 +436,9 @@ export async function loadMoreVideos(type) {
   pagination[type].loading = true;
   
   try {
-    // If we have a next page token, use it
     if (pagination[type].nextPageToken) {
       await fetchAndSaveVideos(type, pagination[type].nextPageToken);
     } else {
-      // No token means we need to fetch from YouTube first
       await fetchAllChannelVideos(type);
     }
   } finally {
@@ -201,7 +467,7 @@ async function fetchAllChannelVideos(type) {
     let allVideos = [];
     let pageToken = null;
     let pageCount = 0;
-    const maxPages = 10; // Max 500 videos (50 per page)
+    const maxPages = 10;
     
     do {
       let searchUrl = `${YT_API}/search?part=snippet&channelId=${state.settings.channelId}&maxResults=50&order=date&type=video&key=${state.settings.youtubeApiKey}`;
@@ -234,12 +500,10 @@ async function fetchAllChannelVideos(type) {
       pageToken = search.nextPageToken;
       pageCount++;
       
-      // Update loading text
       document.getElementById('loadingText').textContent = `${allVideos.length} video çekildi...`;
       
     } while (pageToken && pageCount < maxPages);
     
-    // Filter by type and save
     const filteredVideos = allVideos.filter(v => type === 'short' ? v.type === 'short' : v.type === 'video');
     
     if (filteredVideos.length > 0) {
@@ -268,6 +532,7 @@ function parseDuration(d) {
 export function updateModalBadges() {
   if (!state.currentVideo) return;
   const badges = [];
+  if (state.currentVideo.blog_created) badges.push('<span class="px-2 py-1 text-xs rounded bg-emerald-100 text-emerald-700">📝 Blog Oluşturuldu</span>');
   if (state.currentVideo.audio_status === 'completed') badges.push('<span class="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">🎵 MP3 Hazır</span>');
   else if (state.currentVideo.audio_status === 'processing') badges.push('<span class="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700"><span class="inline-block animate-spin">⏳</span> MP3 İşleniyor</span>');
   if (state.currentVideo.transcript_status === 'completed' && state.currentVideo.transcript) badges.push('<span class="px-2 py-1 text-xs rounded bg-green-100 text-green-700">✅ Deşifre Tamam</span>');
