@@ -555,11 +555,41 @@ export function updateModalBadges() {
   else if (state.currentVideo.transcript_status === 'processing') badges.push('<span class="px-2 py-1 text-xs rounded bg-purple-100 text-purple-700"><span class="inline-block animate-spin">⏳</span> Deşifre Ediliyor</span>');
   else if (state.currentVideo.transcript_status === 'failed') badges.push('<span class="px-2 py-1 text-xs rounded bg-red-100 text-red-700">❌ Hata</span>');
   document.getElementById('modalStatusBadges').innerHTML = badges.join('');
+  
+  // Update generate blog button
+  updateGenerateBlogButton();
 }
 
-export function openVideoModal(id) {
-  state.currentVideo = state.cachedVideos.video.find(v => v.id === id) || state.cachedVideos.short.find(v => v.id === id);
+function updateGenerateBlogButton() {
+  const generateBtn = document.getElementById('generateBlogBtn');
+  if (generateBtn && state.currentVideo) {
+    if (state.currentVideo.blog_created) {
+      generateBtn.textContent = '🤖 Yeniden Blog Yazısı Oluştur';
+      generateBtn.className = 'px-4 py-2 bg-orange-500 text-white rounded-lg text-sm mb-4 hover:bg-orange-600';
+    } else {
+      generateBtn.textContent = '🤖 Blog Yazısı Oluştur';
+      generateBtn.className = 'px-4 py-2 bg-green-600 text-white rounded-lg text-sm mb-4 hover:bg-green-700';
+    }
+  }
+}
+
+export async function openVideoModal(id) {
+  // Fetch fresh data from API to ensure blog_created is up to date
+  try {
+    const res = await fetch(`${API}/api/youtube/videos/${id}`);
+    if (res.ok) {
+      state.currentVideo = await res.json();
+    } else {
+      // Fallback to cache
+      state.currentVideo = state.cachedVideos.video.find(v => v.id === id) || state.cachedVideos.short.find(v => v.id === id);
+    }
+  } catch (e) {
+    // Fallback to cache on error
+    state.currentVideo = state.cachedVideos.video.find(v => v.id === id) || state.cachedVideos.short.find(v => v.id === id);
+  }
+  
   if (!state.currentVideo) return;
+  
   document.getElementById('modalThumb').src = state.currentVideo.thumbnail;
   document.getElementById('modalTitle').textContent = state.currentVideo.title;
   document.getElementById('modalDate').textContent = new Date(state.currentVideo.published_at).toLocaleDateString('tr-TR');
@@ -569,18 +599,6 @@ export function openVideoModal(id) {
   document.getElementById('saveDraftBtn').classList.add('hidden');
   document.getElementById('publishBtn').classList.add('hidden');
   updateModalBadges();
-  
-  // Update generate blog button based on blog_created status
-  const generateBtn = document.getElementById('generateBlogBtn');
-  if (generateBtn) {
-    if (state.currentVideo.blog_created) {
-      generateBtn.textContent = '🤖 Yeniden Blog Yazısı Oluştur';
-      generateBtn.className = 'px-4 py-2 bg-orange-500 text-white rounded-lg text-sm mb-4 hover:bg-orange-600';
-    } else {
-      generateBtn.textContent = '🤖 Blog Yazısı Oluştur';
-      generateBtn.className = 'px-4 py-2 bg-green-600 text-white rounded-lg text-sm mb-4 hover:bg-green-700';
-    }
-  }
   
   const btn = document.getElementById('transcribeBtn');
   if (state.currentVideo.transcript_status === 'processing') { btn.disabled = true; btn.innerHTML = '<span class="inline-block animate-spin">⏳</span> İşleniyor...'; }
