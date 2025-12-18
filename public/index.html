@@ -17,7 +17,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen">
   
-  <!-- Login -->
+  <!-- Login Screen -->
   <div id="loginScreen" class="min-h-screen flex items-center justify-center">
     <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md text-center">
       <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-white text-2xl">📝</div>
@@ -30,24 +30,25 @@
 
   <!-- Main App -->
   <div id="mainApp" class="hidden">
+    <!-- Header -->
     <header class="bg-white shadow-sm border-b">
       <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
         <h1 class="text-xl font-bold">📝 Atasa Blog Admin</h1>
         <div class="flex gap-1 bg-slate-100 p-1 rounded-xl">
-          <button onclick="switchPage('posts')" id="page-posts" class="px-4 py-2 rounded-lg text-sm font-medium page-active">Yazılar</button>
-          <button onclick="switchPage('youtube')" id="page-youtube" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white">YouTube</button>
-          <button onclick="switchPage('shorts')" id="page-shorts" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white">Shorts</button>
-          <button onclick="switchPage('settings')" id="page-settings" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white">Ayarlar</button>
+          <button onclick="app.switchPage('posts')" id="page-posts" class="px-4 py-2 rounded-lg text-sm font-medium page-active">Yazılar</button>
+          <button onclick="app.switchPage('youtube')" id="page-youtube" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white">YouTube</button>
+          <button onclick="app.switchPage('shorts')" id="page-shorts" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white">Shorts</button>
+          <button onclick="app.switchPage('settings')" id="page-settings" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white">Ayarlar</button>
         </div>
         <div class="flex items-center gap-4">
           <div class="flex items-center gap-2">
             <span class="text-sm">Otopilot</span>
-            <button id="autopilotToggle" onclick="toggleAutopilot()" class="w-12 h-6 rounded-full bg-slate-300 relative">
+            <button id="autopilotToggle" onclick="app.toggleAutopilot()" class="w-12 h-6 rounded-full bg-slate-300 relative">
               <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
             </button>
           </div>
           <img id="userAvatar" src="" class="w-8 h-8 rounded-full">
-          <button onclick="logout()" class="text-sm text-slate-500 hover:text-red-600">Çıkış</button>
+          <button onclick="app.logout()" class="text-sm text-slate-500 hover:text-red-600">Çıkış</button>
         </div>
       </div>
     </header>
@@ -61,10 +62,10 @@
         <div class="bg-white rounded-xl p-4 border"><p class="text-2xl font-bold" id="totalCount">-</p><p class="text-xs text-slate-500">Toplam</p></div>
       </div>
       <div class="flex gap-2 mb-6">
-        <button onclick="setFilter('all')" id="tab-all" class="px-4 py-2 rounded-lg text-sm border-2 tab-active">Tümü</button>
-        <button onclick="setFilter('draft')" id="tab-draft" class="px-4 py-2 rounded-lg text-sm border-2 border-transparent">Taslaklar</button>
-        <button onclick="setFilter('published')" id="tab-published" class="px-4 py-2 rounded-lg text-sm border-2 border-transparent">Yayında</button>
-        <button onclick="setFilter('scheduled')" id="tab-scheduled" class="px-4 py-2 rounded-lg text-sm border-2 border-transparent">Zamanlanmış</button>
+        <button onclick="app.setFilter('all')" id="tab-all" class="px-4 py-2 rounded-lg text-sm border-2 tab-active">Tümü</button>
+        <button onclick="app.setFilter('draft')" id="tab-draft" class="px-4 py-2 rounded-lg text-sm border-2 border-transparent">Taslaklar</button>
+        <button onclick="app.setFilter('published')" id="tab-published" class="px-4 py-2 rounded-lg text-sm border-2 border-transparent">Yayında</button>
+        <button onclick="app.setFilter('scheduled')" id="tab-scheduled" class="px-4 py-2 rounded-lg text-sm border-2 border-transparent">Zamanlanmış</button>
       </div>
       <div class="bg-white rounded-xl border"><div id="postsList" class="divide-y"></div></div>
     </main>
@@ -74,8 +75,8 @@
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">🎬 YouTube Videoları</h2>
         <div class="flex gap-2">
-          <button onclick="transcribeAll('video')" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm">🎙️ Tümünü Deşifre Et</button>
-          <button onclick="fetchAndSaveVideos('video')" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm">🔄 Güncelle</button>
+          <button onclick="app.transcribeAll('video')" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm">🎙️ Tümünü Deşifre Et</button>
+          <button onclick="app.fetchAndSaveVideos('video')" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm">🔄 Güncelle</button>
         </div>
       </div>
       <div id="youtubeVideosList" class="grid grid-cols-3 gap-6"></div>
@@ -86,8 +87,8 @@
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">📱 Shorts</h2>
         <div class="flex gap-2">
-          <button onclick="transcribeAll('short')" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm">🎙️ Tümünü Deşifre Et</button>
-          <button onclick="fetchAndSaveVideos('short')" class="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm">🔄 Güncelle</button>
+          <button onclick="app.transcribeAll('short')" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm">🎙️ Tümünü Deşifre Et</button>
+          <button onclick="app.fetchAndSaveVideos('short')" class="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm">🔄 Güncelle</button>
         </div>
       </div>
       <div id="shortsVideosList" class="grid grid-cols-4 gap-4"></div>
@@ -113,12 +114,12 @@
           <label class="block text-sm font-medium mb-2">YouTube Kanal ID</label>
           <input type="text" id="youtubeChannelId" class="w-full px-3 py-2 border rounded-lg font-mono text-sm">
         </div>
-        <button onclick="saveSettings()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium">Kaydet</button>
+        <button onclick="app.saveSettings()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium">Kaydet</button>
         
         <div class="bg-white rounded-xl p-4 border mt-6">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-semibold">👥 İzinli Kullanıcılar</h3>
-            <button onclick="openAddUserModal()" class="px-3 py-1 bg-indigo-600 text-white rounded text-sm">+ Ekle</button>
+            <button onclick="app.openAddUserModal()" class="px-3 py-1 bg-indigo-600 text-white rounded text-sm">+ Ekle</button>
           </div>
           <div id="allowedUsersList" class="space-y-2"></div>
         </div>
@@ -126,10 +127,10 @@
     </main>
   </div>
 
-  <!-- Modals -->
+  <!-- Edit Post Modal -->
   <div id="editModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-      <div class="p-4 border-b flex justify-between"><h3 class="font-semibold">Düzenle</h3><button onclick="closeModal('edit')">✕</button></div>
+      <div class="p-4 border-b flex justify-between"><h3 class="font-semibold">Düzenle</h3><button onclick="app.closeModal('edit')">✕</button></div>
       <div class="p-4 overflow-y-auto flex-1 space-y-3">
         <input type="hidden" id="editId">
         <input type="text" id="editTitle" placeholder="Başlık" class="w-full px-3 py-2 border rounded-lg">
@@ -139,15 +140,16 @@
         <input type="url" id="editThumbnail" placeholder="Görsel URL" class="w-full px-3 py-2 border rounded-lg">
       </div>
       <div class="p-4 border-t flex justify-end gap-2">
-        <button onclick="closeModal('edit')" class="px-4 py-2 text-slate-600">İptal</button>
-        <button onclick="savePost()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Kaydet</button>
+        <button onclick="app.closeModal('edit')" class="px-4 py-2 text-slate-600">İptal</button>
+        <button onclick="app.savePost()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Kaydet</button>
       </div>
     </div>
   </div>
 
+  <!-- Video Modal -->
   <div id="videoModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-      <div class="p-4 border-b flex justify-between"><h3 class="font-semibold">🎬 Video → Blog</h3><button onclick="closeModal('video')">✕</button></div>
+      <div class="p-4 border-b flex justify-between"><h3 class="font-semibold">🎬 Video → Blog</h3><button onclick="app.closeModal('video')">✕</button></div>
       <div class="p-4 overflow-y-auto flex-1">
         <div class="flex gap-4 mb-4">
           <img id="modalThumb" class="w-40 h-24 object-cover rounded-lg">
@@ -160,40 +162,42 @@
         <div class="mb-4">
           <div class="flex justify-between items-center mb-2">
             <label class="text-sm font-medium">Transkript</label>
-            <div class="flex gap-2">
-              <button onclick="startBackgroundTranscription()" id="transcribeBtn" class="px-3 py-1 bg-purple-600 text-white rounded text-sm">🎙️ Deşifre Et</button>
-            </div>
+            <button onclick="app.startBackgroundTranscription()" id="transcribeBtn" class="px-3 py-1 bg-purple-600 text-white rounded text-sm">🎙️ Deşifre Et</button>
           </div>
           <textarea id="videoTranscript" rows="6" class="w-full px-3 py-2 border rounded-lg font-mono text-sm" placeholder="Transkript buraya gelecek..."></textarea>
           <p id="transcriptStatus" class="text-xs mt-1"></p>
         </div>
-        <button onclick="generateBlog()" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm mb-4">🤖 Blog Oluştur</button>
+        <button onclick="app.generateBlog()" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm mb-4">🤖 Blog Oluştur</button>
         <div id="blogPreview" class="hidden space-y-3">
           <input type="text" id="blogTitle" placeholder="Blog Başlığı" class="w-full px-3 py-2 border rounded-lg font-semibold">
           <textarea id="blogContent" rows="8" class="w-full px-3 py-2 border rounded-lg font-mono text-sm"></textarea>
         </div>
       </div>
       <div class="p-4 border-t flex justify-end gap-2">
-        <button onclick="closeModal('video')" class="px-4 py-2 text-slate-600">İptal</button>
-        <button onclick="saveBlog('draft')" id="saveDraftBtn" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hidden">Taslak</button>
-        <button onclick="saveBlog('published')" id="publishBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hidden">Yayınla</button>
+        <button onclick="app.closeModal('video')" class="px-4 py-2 text-slate-600">İptal</button>
+        <button onclick="app.saveBlog('draft')" id="saveDraftBtn" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hidden">Taslak</button>
+        <button onclick="app.saveBlog('published')" id="publishBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hidden">Yayınla</button>
       </div>
     </div>
   </div>
 
+  <!-- Add User Modal -->
   <div id="addUserModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-xl w-full max-w-md p-6">
       <h3 class="font-semibold mb-4">Kullanıcı Ekle</h3>
       <input type="email" id="newUserEmail" placeholder="Email" class="w-full px-3 py-2 border rounded-lg mb-3">
       <input type="text" id="newUserName" placeholder="İsim (opsiyonel)" class="w-full px-3 py-2 border rounded-lg mb-4">
       <div class="flex justify-end gap-2">
-        <button onclick="closeModal('addUser')" class="px-4 py-2 text-slate-600">İptal</button>
-        <button onclick="addUser()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg">Ekle</button>
+        <button onclick="app.closeModal('addUser')" class="px-4 py-2 text-slate-600">İptal</button>
+        <button onclick="app.addUser()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg">Ekle</button>
       </div>
     </div>
   </div>
 
+  <!-- Toast -->
   <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-6 py-3 rounded-xl translate-y-20 opacity-0 transition-all z-50"></div>
+  
+  <!-- Loading -->
   <div id="loading" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
     <div class="bg-white rounded-xl p-8 text-center">
       <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -201,432 +205,7 @@
     </div>
   </div>
 
-  <script>
-    const API = 'https://atasa-blog-api-production-22a4.up.railway.app';
-    const YT_API = 'https://www.googleapis.com/youtube/v3';
-    const GOOGLE_CLIENT_ID = '490053519646-ri90e1mmbkgb7dj9vqt0982m735ch3de.apps.googleusercontent.com';
-    
-    let posts = [], currentFilter = 'all', currentUser = null, currentVideo = null, autopilot = false;
-    let cachedVideos = { video: [], short: [] };
-    let settings = { youtubeApiKey: '', openaiApiKey: '', assemblyaiApiKey: '', channelId: '' };
-    let statusCheckInterval = null;
-
-    window.onload = () => {
-      google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleLogin });
-      const saved = localStorage.getItem('adminUser');
-      if (saved) { currentUser = JSON.parse(saved); showApp(); }
-      else { showLogin(); }
-    };
-
-    function showLogin() {
-      document.getElementById('loginScreen').classList.remove('hidden');
-      document.getElementById('mainApp').classList.add('hidden');
-      google.accounts.id.renderButton(document.getElementById('googleLoginBtn'), { theme: 'outline', size: 'large', width: 280 });
-    }
-
-    function showApp() {
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('mainApp').classList.remove('hidden');
-      if (currentUser?.picture) document.getElementById('userAvatar').src = currentUser.picture;
-      loadSettings(); loadPosts(); loadVideos(); loadUsers();
-      // Her 10 saniyede bir durumu kontrol et
-      statusCheckInterval = setInterval(checkVideoStatuses, 10000);
-    }
-
-    async function handleLogin(response) {
-      const jwt = JSON.parse(atob(response.credential.split('.')[1]));
-      const res = await fetch(`${API}/api/auth/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: jwt.email }) });
-      const data = await res.json();
-      if (data.allowed) {
-        currentUser = { email: jwt.email, name: jwt.name, picture: jwt.picture };
-        localStorage.setItem('adminUser', JSON.stringify(currentUser));
-        showApp(); toast(`Hoş geldin, ${jwt.given_name}! 👋`);
-      } else {
-        document.getElementById('loginError').textContent = 'Giriş izniniz yok.';
-        document.getElementById('loginError').classList.remove('hidden');
-      }
-    }
-
-    function logout() { 
-      currentUser = null; 
-      localStorage.removeItem('adminUser'); 
-      google.accounts.id.disableAutoSelect(); 
-      if (statusCheckInterval) clearInterval(statusCheckInterval);
-      showLogin(); 
-    }
-
-    function loadSettings() {
-      settings.youtubeApiKey = localStorage.getItem('youtubeApiKey') || '';
-      settings.openaiApiKey = localStorage.getItem('openaiApiKey') || '';
-      settings.assemblyaiApiKey = localStorage.getItem('assemblyaiApiKey') || '880456141ffa4ac5b860408278aef7f9';
-      settings.channelId = localStorage.getItem('channelId') || '';
-      document.getElementById('youtubeApiKey').value = settings.youtubeApiKey;
-      document.getElementById('openaiApiKey').value = settings.openaiApiKey;
-      document.getElementById('assemblyaiApiKey').value = settings.assemblyaiApiKey;
-      document.getElementById('youtubeChannelId').value = settings.channelId;
-      fetch(`${API}/api/settings`).then(r => r.json()).then(d => { autopilot = d.autopilot; updateAutopilotUI(); });
-    }
-
-    function saveSettings() {
-      settings.youtubeApiKey = document.getElementById('youtubeApiKey').value.trim();
-      settings.openaiApiKey = document.getElementById('openaiApiKey').value.trim();
-      settings.assemblyaiApiKey = document.getElementById('assemblyaiApiKey').value.trim();
-      settings.channelId = document.getElementById('youtubeChannelId').value.trim();
-      Object.entries(settings).forEach(([k, v]) => localStorage.setItem(k, v));
-      toast('Kaydedildi ✓');
-    }
-
-    function updateAutopilotUI() {
-      const t = document.getElementById('autopilotToggle');
-      t.className = `w-12 h-6 rounded-full relative ${autopilot ? 'bg-green-500' : 'bg-slate-300'}`;
-      t.querySelector('span').style.transform = autopilot ? 'translateX(24px)' : '';
-    }
-
-    async function toggleAutopilot() {
-      autopilot = !autopilot; updateAutopilotUI();
-      await fetch(`${API}/api/settings`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ autopilot }) });
-      toast(autopilot ? 'Otopilot açık' : 'Otopilot kapalı');
-    }
-
-    function switchPage(page) {
-      ['posts', 'youtube', 'shorts', 'settings'].forEach(p => {
-        document.getElementById(p + 'Page').classList.toggle('hidden', p !== page);
-        document.getElementById('page-' + p).classList.toggle('page-active', p === page);
-      });
-    }
-
-    // Posts
-    async function loadPosts() {
-      const res = await fetch(`${API}/api/posts/all`);
-      posts = await res.json();
-      document.getElementById('draftCount').textContent = posts.filter(p => p.status === 'draft').length;
-      document.getElementById('publishedCount').textContent = posts.filter(p => p.status === 'published').length;
-      document.getElementById('scheduledCount').textContent = posts.filter(p => p.status === 'scheduled').length;
-      document.getElementById('totalCount').textContent = posts.length;
-      renderPosts();
-    }
-
-    function setFilter(f) {
-      currentFilter = f;
-      document.querySelectorAll('[id^="tab-"]').forEach(t => t.classList.toggle('tab-active', t.id === 'tab-' + f));
-      renderPosts();
-    }
-
-    function renderPosts() {
-      const list = document.getElementById('postsList');
-      const filtered = currentFilter === 'all' ? posts : posts.filter(p => p.status === currentFilter);
-      if (!filtered.length) { list.innerHTML = '<p class="p-8 text-center text-slate-500">Yazı yok</p>'; return; }
-      list.innerHTML = filtered.map(p => `
-        <div class="p-4 flex gap-4 hover:bg-slate-50">
-          <img src="${p.thumbnail || 'https://via.placeholder.com/80'}" class="w-20 h-20 rounded-lg object-cover">
-          <div class="flex-1">
-            <span class="px-2 py-0.5 text-xs rounded-full ${p.status === 'published' ? 'bg-green-100 text-green-700' : p.status === 'scheduled' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}">${p.status}</span>
-            <h3 class="font-semibold mt-1">${p.title}</h3>
-            <p class="text-sm text-slate-500">${p.category} • ${p.date}</p>
-          </div>
-          <div class="flex gap-1">
-            ${p.status === 'draft' ? `<button onclick="publishPost('${p.id}')" class="p-2 hover:bg-green-100 text-green-600 rounded">✓</button>` : ''}
-            ${p.status === 'published' ? `<button onclick="unpublishPost('${p.id}')" class="p-2 hover:bg-yellow-100 text-yellow-600 rounded">↩</button>` : ''}
-            <button onclick="editPost('${p.id}')" class="p-2 hover:bg-slate-100 rounded">✏️</button>
-            <button onclick="deletePost('${p.id}')" class="p-2 hover:bg-red-100 text-red-600 rounded">🗑️</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    async function publishPost(id) { await fetch(`${API}/api/posts/${id}/publish`, { method: 'PUT' }); loadPosts(); toast('Yayınlandı'); }
-    async function unpublishPost(id) { await fetch(`${API}/api/posts/${id}/unpublish`, { method: 'PUT' }); loadPosts(); toast('Taslağa alındı'); }
-    async function deletePost(id) { if (!confirm('Silmek istediğinize emin misiniz?')) return; await fetch(`${API}/api/posts/${id}`, { method: 'DELETE' }); loadPosts(); toast('Silindi'); }
-
-    function editPost(id) {
-      const p = posts.find(x => x.id === id);
-      document.getElementById('editId').value = p.id;
-      document.getElementById('editTitle').value = p.title;
-      document.getElementById('editCategory').value = p.category;
-      document.getElementById('editExcerpt').value = p.excerpt || '';
-      document.getElementById('editContent').value = p.content;
-      document.getElementById('editThumbnail').value = p.thumbnail;
-      openModal('edit');
-    }
-
-    async function savePost() {
-      const id = document.getElementById('editId').value;
-      await fetch(`${API}/api/posts/${id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: document.getElementById('editTitle').value, category: document.getElementById('editCategory').value, excerpt: document.getElementById('editExcerpt').value, content: document.getElementById('editContent').value, thumbnail: document.getElementById('editThumbnail').value })
-      });
-      closeModal('edit'); loadPosts(); toast('Güncellendi');
-    }
-
-    // Videos
-    async function loadVideos() {
-      try {
-        const [v, s] = await Promise.all([fetch(`${API}/api/youtube/videos?type=video`), fetch(`${API}/api/youtube/videos?type=short`)]);
-        cachedVideos.video = await v.json();
-        cachedVideos.short = await s.json();
-        renderVideos('video'); renderVideos('short');
-      } catch (e) { console.error(e); }
-    }
-
-    // Durum kontrolü için periyodik çağrı
-    async function checkVideoStatuses() {
-      const processingVideos = [...cachedVideos.video, ...cachedVideos.short].filter(v => 
-        v.transcript_status === 'processing' || v.audio_status === 'processing'
-      );
-      
-      if (processingVideos.length > 0) {
-        await loadVideos();
-        // Modal açıksa ve video güncellenmiştisse, modal'ı güncelle
-        if (currentVideo) {
-          const updated = [...cachedVideos.video, ...cachedVideos.short].find(v => v.id === currentVideo.id);
-          if (updated && updated.transcript !== currentVideo.transcript) {
-            currentVideo = updated;
-            document.getElementById('videoTranscript').value = updated.transcript || '';
-            updateModalBadges();
-          }
-        }
-      }
-    }
-
-    function getStatusBadge(video) {
-      const badges = [];
-      
-      // Audio status
-      if (video.audio_status === 'completed') {
-        badges.push('<span class="status-badge bg-blue-500 text-white">🎵 MP3</span>');
-      } else if (video.audio_status === 'processing') {
-        badges.push('<span class="status-badge bg-blue-400 text-white"><span class="inline-block animate-spin">⏳</span> MP3</span>');
-      }
-      
-      // Transcript status
-      if (video.transcript_status === 'completed' && video.transcript) {
-        badges.push('<span class="status-badge bg-green-500 text-white" style="right: 50px;">✅ Deşifre</span>');
-      } else if (video.transcript_status === 'processing') {
-        badges.push('<span class="status-badge bg-purple-500 text-white" style="right: 50px;"><span class="inline-block animate-spin">⏳</span> Deşifre</span>');
-      } else if (video.transcript_status === 'failed') {
-        badges.push('<span class="status-badge bg-red-500 text-white" style="right: 50px;">❌ Hata</span>');
-      }
-      
-      return badges.join('');
-    }
-
-    function renderVideos(type) {
-      const container = document.getElementById(type === 'short' ? 'shortsVideosList' : 'youtubeVideosList');
-      const videos = cachedVideos[type];
-      if (!videos?.length) { container.innerHTML = '<p class="col-span-full text-center text-slate-500 p-12 bg-white rounded-xl">Henüz video yok</p>'; return; }
-      container.innerHTML = videos.map(v => `
-        <div onclick="openVideoModal('${v.id}')" class="bg-white rounded-xl border overflow-hidden cursor-pointer hover:shadow-lg transition-all">
-          <div class="relative">
-            <img src="${v.thumbnail}" class="w-full ${type === 'short' ? 'aspect-[9/16]' : 'aspect-video'} object-cover">
-            ${getStatusBadge(v)}
-          </div>
-          <div class="p-3"><h3 class="font-medium line-clamp-2 text-sm">${v.title}</h3></div>
-        </div>
-      `).join('');
-    }
-
-    async function fetchAndSaveVideos(type) {
-      if (!settings.youtubeApiKey) { toast('YouTube API Key gerekli!'); switchPage('settings'); return; }
-      showLoading('Videolar çekiliyor...');
-      try {
-        if (!settings.channelId) {
-          const ch = await fetch(`${YT_API}/search?part=snippet&type=channel&q=@atasa_tr&key=${settings.youtubeApiKey}`).then(r => r.json());
-          if (ch.items?.[0]) { settings.channelId = ch.items[0].snippet.channelId; localStorage.setItem('channelId', settings.channelId); }
-        }
-        const search = await fetch(`${YT_API}/search?part=snippet&channelId=${settings.channelId}&maxResults=50&order=date&type=video&key=${settings.youtubeApiKey}`).then(r => r.json());
-        if (!search.items?.length) { hideLoading(); toast('Video bulunamadı'); return; }
-        const ids = search.items.map(i => i.id.videoId).join(',');
-        const details = await fetch(`${YT_API}/videos?part=contentDetails,statistics&id=${ids}&key=${settings.youtubeApiKey}`).then(r => r.json());
-        const videos = search.items.map(i => {
-          const d = details.items.find(x => x.id === i.id.videoId);
-          const dur = parseDuration(d?.contentDetails?.duration || 'PT0S');
-          return { id: i.id.videoId, title: i.snippet.title, description: i.snippet.description, thumbnail: i.snippet.thumbnails.high?.url, duration: dur, viewCount: parseInt(d?.statistics?.viewCount || 0), publishedAt: i.snippet.publishedAt, channelId: settings.channelId, type: dur <= 60 ? 'short' : 'video' };
-        }).filter(v => type === 'short' ? v.type === 'short' : v.type === 'video');
-        await fetch(`${API}/api/youtube/videos`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ videos }) });
-        hideLoading(); loadVideos(); toast(`${videos.length} video kaydedildi ✓`);
-      } catch (e) { hideLoading(); toast('Hata: ' + e.message); }
-    }
-
-    function parseDuration(d) { const m = d.match(/PT(\d+H)?(\d+M)?(\d+S)?/); return (parseInt(m[1]) || 0) * 3600 + (parseInt(m[2]) || 0) * 60 + (parseInt(m[3]) || 0); }
-
-    // Tüm videoları deşifre et
-    async function transcribeAll(type) {
-      if (!settings.assemblyaiApiKey) { toast('AssemblyAI API Key gerekli!'); switchPage('settings'); return; }
-      
-      const videos = cachedVideos[type].filter(v => !v.transcript && v.transcript_status !== 'processing');
-      if (!videos.length) { toast('Deşifre edilecek video yok'); return; }
-      
-      toast(`${videos.length} video deşifre edilmeye başlıyor...`);
-      
-      for (const video of videos) {
-        try {
-          await fetch(`${API}/api/youtube/videos/${video.id}/transcribe`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ apiKey: settings.assemblyaiApiKey })
-          });
-        } catch (e) { console.error('Transcribe error:', e); }
-      }
-      
-      loadVideos();
-      toast('Arka planda işlem başladı ✓');
-    }
-
-    function updateModalBadges() {
-      if (!currentVideo) return;
-      const badges = [];
-      
-      if (currentVideo.audio_status === 'completed') {
-        badges.push('<span class="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">🎵 MP3 Hazır</span>');
-      } else if (currentVideo.audio_status === 'processing') {
-        badges.push('<span class="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700"><span class="inline-block animate-spin">⏳</span> MP3 İşleniyor</span>');
-      }
-      
-      if (currentVideo.transcript_status === 'completed' && currentVideo.transcript) {
-        badges.push('<span class="px-2 py-1 text-xs rounded bg-green-100 text-green-700">✅ Deşifre Tamam</span>');
-      } else if (currentVideo.transcript_status === 'processing') {
-        badges.push('<span class="px-2 py-1 text-xs rounded bg-purple-100 text-purple-700"><span class="inline-block animate-spin">⏳</span> Deşifre Ediliyor</span>');
-      } else if (currentVideo.transcript_status === 'failed') {
-        badges.push('<span class="px-2 py-1 text-xs rounded bg-red-100 text-red-700">❌ Hata</span>');
-      }
-      
-      document.getElementById('modalStatusBadges').innerHTML = badges.join('');
-    }
-
-    async function openVideoModal(id) {
-      currentVideo = cachedVideos.video.find(v => v.id === id) || cachedVideos.short.find(v => v.id === id);
-      if (!currentVideo) return;
-      
-      document.getElementById('modalThumb').src = currentVideo.thumbnail;
-      document.getElementById('modalTitle').textContent = currentVideo.title;
-      document.getElementById('modalDate').textContent = new Date(currentVideo.published_at).toLocaleDateString('tr-TR');
-      document.getElementById('videoTranscript').value = currentVideo.transcript || '';
-      document.getElementById('transcriptStatus').textContent = '';
-      document.getElementById('blogPreview').classList.add('hidden');
-      document.getElementById('saveDraftBtn').classList.add('hidden');
-      document.getElementById('publishBtn').classList.add('hidden');
-      
-      updateModalBadges();
-      
-      // Buton durumunu ayarla
-      const btn = document.getElementById('transcribeBtn');
-      if (currentVideo.transcript_status === 'processing') {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="inline-block animate-spin">⏳</span> İşleniyor...';
-      } else if (currentVideo.transcript) {
-        btn.disabled = false;
-        btn.textContent = '🔄 Yeniden Deşifre Et';
-      } else {
-        btn.disabled = false;
-        btn.textContent = '🎙️ Deşifre Et';
-      }
-      
-      openModal('video');
-    }
-
-    // Arka planda transkripsiyon başlat
-    async function startBackgroundTranscription() {
-      if (!currentVideo) return;
-      if (!settings.assemblyaiApiKey) { toast('AssemblyAI API Key gerekli!'); switchPage('settings'); closeModal('video'); return; }
-      
-      const btn = document.getElementById('transcribeBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="inline-block animate-spin">⏳</span> Başlatılıyor...';
-      
-      try {
-        const res = await fetch(`${API}/api/youtube/videos/${currentVideo.id}/transcribe`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ apiKey: settings.assemblyaiApiKey })
-        });
-        const data = await res.json();
-        
-        if (!data.success) throw new Error(data.error);
-        
-        toast('Deşifre işlemi başladı ✓ Sayfa kapatılsa bile devam edecek.');
-        btn.innerHTML = '<span class="inline-block animate-spin">⏳</span> İşleniyor...';
-        
-        // Video durumunu güncelle
-        currentVideo.transcript_status = 'processing';
-        updateModalBadges();
-        loadVideos();
-        
-      } catch (e) {
-        console.error('Transcription error:', e);
-        toast('Hata: ' + e.message);
-        btn.disabled = false;
-        btn.textContent = '🎙️ Deşifre Et';
-      }
-    }
-
-    async function generateBlog() {
-      const transcript = document.getElementById('videoTranscript').value.trim();
-      if (!transcript || transcript.length < 50) { toast('Önce transkript girin'); return; }
-      if (!settings.openaiApiKey) { toast('OpenAI API Key gerekli!'); switchPage('settings'); closeModal('video'); return; }
-      showLoading('Blog oluşturuluyor...');
-      try {
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.openaiApiKey}` },
-          body: JSON.stringify({ model: 'gpt-4o-mini', messages: [
-            { role: 'system', content: 'YouTube transkriptini Türkçe SEO uyumlu blog yazısına dönüştür. Markdown formatında, 400-800 kelime. Format: BAŞLIK: [başlık]\n---\n[içerik]' },
-            { role: 'user', content: `Video: ${currentVideo?.title}\n\nTranskript:\n${transcript}` }
-          ], temperature: 0.7, max_tokens: 2500 })
-        });
-        const data = await res.json();
-        if (data.error) throw new Error(data.error.message);
-        const content = data.choices[0].message.content;
-        const titleMatch = content.match(/BAŞLIK:\s*(.+)/);
-        document.getElementById('blogTitle').value = titleMatch ? titleMatch[1].trim() : currentVideo?.title || 'Blog';
-        document.getElementById('blogContent').value = content.replace(/BAŞLIK:\s*.+\n---\n?/, '').trim();
-        document.getElementById('blogPreview').classList.remove('hidden');
-        document.getElementById('saveDraftBtn').classList.remove('hidden');
-        document.getElementById('publishBtn').classList.remove('hidden');
-        hideLoading(); toast('Blog oluşturuldu ✓');
-      } catch (e) { hideLoading(); toast('Hata: ' + e.message); }
-    }
-
-    async function saveBlog(status) {
-      const title = document.getElementById('blogTitle').value.trim();
-      const content = document.getElementById('blogContent').value.trim();
-      if (!title || !content) { toast('Başlık ve içerik gerekli'); return; }
-      showLoading('Kaydediliyor...');
-      await fetch(`${API}/api/posts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, content, category: currentVideo?.duration <= 60 ? 'Shorts' : 'YouTube', thumbnail: currentVideo?.thumbnail, status }) });
-      hideLoading(); closeModal('video'); switchPage('posts'); loadPosts();
-      toast(status === 'published' ? 'Yayınlandı! 🚀' : 'Taslak kaydedildi 📝');
-    }
-
-    // Users
-    async function loadUsers() {
-      const res = await fetch(`${API}/api/auth/users`);
-      const users = await res.json();
-      document.getElementById('allowedUsersList').innerHTML = users.length ? users.map(u => `
-        <div class="flex justify-between items-center p-2 bg-slate-50 rounded">
-          <span>${u.email}${u.name ? ` (${u.name})` : ''}</span>
-          <button onclick="removeUser(${u.id})" class="text-red-600 text-sm">🗑️</button>
-        </div>
-      `).join('') : '<p class="text-slate-500 text-sm">Kullanıcı yok</p>';
-    }
-
-    async function addUser() {
-      const email = document.getElementById('newUserEmail').value.trim();
-      if (!email) { toast('Email gerekli'); return; }
-      await fetch(`${API}/api/auth/users`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, name: document.getElementById('newUserName').value.trim() }) });
-      closeModal('addUser'); loadUsers(); toast('Eklendi ✓');
-    }
-
-    async function removeUser(id) {
-      if (!confirm('Silmek istediğinize emin misiniz?')) return;
-      await fetch(`${API}/api/auth/users/${id}`, { method: 'DELETE' });
-      loadUsers(); toast('Silindi');
-    }
-
-    function openAddUserModal() { openModal('addUser'); }
-    function openModal(name) { document.getElementById(name + 'Modal').classList.remove('hidden'); document.getElementById(name + 'Modal').classList.add('flex'); }
-    function closeModal(name) { document.getElementById(name + 'Modal').classList.add('hidden'); document.getElementById(name + 'Modal').classList.remove('flex'); }
-    function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000); }
-    function showLoading(text) { document.getElementById('loadingText').textContent = text; document.getElementById('loading').classList.remove('hidden'); document.getElementById('loading').classList.add('flex'); }
-    function hideLoading() { document.getElementById('loading').classList.add('hidden'); document.getElementById('loading').classList.remove('flex'); }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal('edit'); closeModal('video'); closeModal('addUser'); } });
-  </script>
+  <!-- Load Modular JS -->
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
