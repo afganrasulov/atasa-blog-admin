@@ -1,6 +1,7 @@
 // videos.js - YouTube Videos Management
 import { API, YT_API, state } from './config.js';
 import { toast, showLoading, hideLoading, openModal } from './utils.js';
+import { getBlogSystemPrompt } from './settings.js';
 
 // Pagination and selection state
 const pagination = {
@@ -272,6 +273,9 @@ export async function bulkGenerateBlog(type) {
   
   showLoading(`${videosWithTranscript.length} video için blog oluşturuluyor...`);
   
+  // Get combined system prompt (blog prompt + SEO rules)
+  const systemPrompt = getBlogSystemPrompt();
+  
   let successCount = 0;
   let failCount = 0;
   
@@ -282,7 +286,7 @@ export async function bulkGenerateBlog(type) {
     try {
       document.getElementById('loadingText').textContent = `Blog oluşturuluyor: ${video.title.substring(0, 30)}...`;
       
-      // Generate blog content
+      // Generate blog content with custom prompt
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: { 
@@ -292,11 +296,11 @@ export async function bulkGenerateBlog(type) {
         body: JSON.stringify({
           model: 'gpt-4o-mini',
           messages: [
-            { role: 'system', content: 'YouTube transkriptini Türkçe SEO uyumlu blog yazısına dönüştür. Markdown formatında, 400-800 kelime. Format: BAŞLIK: [başlık]\n---\n[içerik]' },
-            { role: 'user', content: `Video: ${video.title}\n\nTranskript:\n${video.transcript}` }
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `Video Başlığı: ${video.title}\n\nTranskript:\n${video.transcript}` }
           ],
           temperature: 0.7,
-          max_tokens: 2500
+          max_tokens: 3500
         })
       });
       
