@@ -95,7 +95,15 @@ export async function generateBlog() {
   const transcript = document.getElementById('videoTranscript').value.trim();
   if (!transcript || transcript.length < 50) { toast('Önce transkript girin'); return; }
   if (!state.settings.openaiApiKey) { toast('OpenAI API Key gerekli!'); switchPage('settings'); closeModal('video'); return; }
-  showLoading('Blog oluşturuluyor...');
+  
+  // Check if blog already created for this video
+  if (state.currentVideo?.blog_created) {
+    if (!confirm('Bu video için zaten blog yazısı oluşturulmuş. Yeniden oluşturmak istediğinize emin misiniz?')) {
+      return;
+    }
+  }
+  
+  showLoading('Blog yazısı oluşturuluyor...');
   try {
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -120,7 +128,7 @@ export async function generateBlog() {
     document.getElementById('saveDraftBtn').classList.remove('hidden');
     document.getElementById('publishBtn').classList.remove('hidden');
     hideLoading();
-    toast('Blog oluşturuldu ✓');
+    toast('Blog yazısı oluşturuldu ✓');
   } catch (e) { hideLoading(); toast('Hata: ' + e.message); }
 }
 
