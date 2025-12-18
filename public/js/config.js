@@ -12,11 +12,27 @@ export const state = {
   autopilot: false,
   cachedVideos: { video: [], short: [] },
   settings: {
+    // API Keys (sunucuda saklanır)
     youtubeApiKey: '',
     openaiApiKey: '',
     assemblyaiApiKey: '',
     channelId: '',
-    transcriptionProvider: 'openai' // 'openai' or 'assemblyai'
+    
+    // Transcription
+    transcriptionProvider: 'openai', // 'openai' or 'assemblyai'
+    
+    // Blog Generation
+    blogPrompt: '',
+    aiSeoRules: '',
+    aiTitleEnabled: false,
+    
+    // Automation
+    autoScanEnabled: false,
+    autoTranscribe: false,
+    autoBlog: false,
+    autoPublish: false,
+    scanIntervalHours: '6',
+    lastScanTime: ''
   },
   statusCheckInterval: null
 };
