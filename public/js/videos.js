@@ -205,6 +205,55 @@ export function setVideoFilter(type, filter) {
   renderVideos(type);
 }
 
+// Reclassify all videos by duration (≤60s = short, >60s = video)
+export async function reclassifyAllVideos() {
+  showLoading('Tüm videolar yeniden sınıflandırılıyor...');
+  
+  try {
+    // Fetch ALL videos from database (both types)
+    const allVideosRes = await fetch(`${API}/api/youtube/videos`);
+    const allVideos = await allVideosRes.json();
+    
+    if (!allVideos || allVideos.length === 0) {
+      hideLoading();
+      toast('Veritabanında video bulunamadı');
+      return;
+    }
+    
+    // Prepare reclassification data based on duration
+    const reclassifyData = allVideos.map(v => ({
+      id: v.id,
+      type: (v.duration && v.duration <= 60) ? 'short' : 'video'
+    }));
+    
+    // Count changes
+    const toShort = reclassifyData.filter(v => v.type === 'short').length;
+    const toVideo = reclassifyData.filter(v => v.type === 'video').length;
+    
+    // Send reclassification request to backend
+    const res = await fetch(`${API}/api/youtube/videos/reclassify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ videos: reclassifyData })
+    });
+    
+    const result = await res.json();
+    
+    hideLoading();
+    
+    if (result.success) {
+      await loadVideos(); // Reload videos
+      toast(`${result.updated} video güncellendi (${toShort} short, ${toVideo} video) ✓`);
+    } else {
+      toast('Hata: ' + (result.error || 'Bilinmeyen hata'));
+    }
+    
+  } catch (e) {
+    hideLoading();
+    toast('Hata: ' + e.message);
+  }
+}
+
 // Bulk operations
 export async function bulkTranscribe(type) {
   const ids = Array.from(selectedVideos[type]);
