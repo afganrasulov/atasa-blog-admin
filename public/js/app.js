@@ -1,7 +1,7 @@
 // app.js - Main Application Entry Point
 import { initAuth, logout, addUser, removeUser } from './auth.js';
 import { loadPosts, setFilter, publishPost, unpublishPost, deletePost, editPost, savePost } from './posts.js';
-import { loadVideos, fetchAndSaveVideos, openVideoModal, loadMoreVideos, toggleVideoSelection, toggleSelectAll, clearSelection, setVideoFilter, bulkTranscribe, bulkGenerateBlog } from './videos.js';
+import { loadVideos, fetchAndSaveVideos, openVideoModal, loadMoreVideos, toggleVideoSelection, toggleSelectAll, clearSelection, setVideoFilter, bulkTranscribe, bulkGenerateBlog, reclassifyAllVideos } from './videos.js';
 import { transcribeAll, startBackgroundTranscription, generateBlog, saveBlog } from './transcription.js';
 import { saveSettings, toggleAutopilot, onProviderChange, resetBlogPrompt, resetSeoRules, toggleAiTitle } from './settings.js';
 import { switchPage, openModal, closeModal } from './utils.js';
@@ -31,6 +31,7 @@ window.app = {
   setVideoFilter,
   bulkTranscribe,
   bulkGenerateBlog,
+  reclassifyAllVideos,
   
   // Transcription
   transcribeAll,
