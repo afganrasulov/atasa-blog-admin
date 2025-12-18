@@ -385,6 +385,91 @@ function getTranscriptionConfig() {
   return { provider, apiKey };
 }
 
+// Reclassify all videos - check YouTube API for vertical/horizontal and update types
+export async function reclassifyVideos() {
+  if (!state.settings.youtubeApiKey) { 
+    toast('YouTube API Key gerekli!'); 
+    return; 
+  }
+  
+  // Get all videos from both lists
+  const allVideos = [...state.cachedVideos.video, ...state.cachedVideos.short];
+  
+  if (allVideos.length === 0) {
+    toast('Sınıflandırılacak video yok');
+    return;
+  }
+  
+  showLoading(`${allVideos.length} video kontrol ediliyor...`);
+  
+  try {
+    const videosToUpdate = [];
+    
+    // Process in batches of 50 (YouTube API limit)
+    for (let i = 0; i < allVideos.length; i += 50) {
+      const batch = allVideos.slice(i, i + 50);
+      const ids = batch.map(v => v.id).join(',');
+      
+      document.getElementById('loadingText').textContent = `${i + batch.length}/${allVideos.length} video kontrol ediliyor...`;
+      
+      // Fetch video details from YouTube to get thumbnail dimensions
+      const response = await fetch(`${YT_API}/videos?part=snippet&id=${ids}&key=${state.settings.youtubeApiKey}`);
+      const data = await response.json();
+      
+      if (data.items) {
+        for (const item of data.items) {
+          const videoIsShort = isShort(item.snippet.thumbnails);
+          const currentVideo = allVideos.find(v => v.id === item.id);
+          const currentType = currentVideo?.video_type || 'video';
+          const newType = videoIsShort ? 'short' : 'video';
+          
+          // Only add if type changed
+          if (currentType !== newType) {
+            videosToUpdate.push({
+              id: item.id,
+              type: newType
+            });
+          }
+        }
+      }
+    }
+    
+    if (videosToUpdate.length === 0) {
+      hideLoading();
+      toast('Tüm videolar zaten doğru sınıflandırılmış ✓');
+      return;
+    }
+    
+    document.getElementById('loadingText').textContent = `${videosToUpdate.length} video güncelleniyor...`;
+    
+    // Send update to API
+    const updateResponse = await fetch(`${API}/api/youtube/videos/reclassify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ videos: videosToUpdate })
+    });
+    
+    const updateResult = await updateResponse.json();
+    
+    hideLoading();
+    await loadVideos();
+    
+    const movedToShorts = videosToUpdate.filter(v => v.type === 'short').length;
+    const movedToVideos = videosToUpdate.filter(v => v.type === 'video').length;
+    
+    let message = '';
+    if (movedToShorts > 0) message += `${movedToShorts} video → Shorts. `;
+    if (movedToVideos > 0) message += `${movedToVideos} shorts → Video. `;
+    
+    toast(message + '✓');
+    
+  } catch (e) {
+    hideLoading();
+    toast('Hata: ' + e.message);
+    console.error(e);
+  }
+}
+
 export async function fetchAndSaveVideos(type, maxResults = 50) {
   if (!state.settings.youtubeApiKey) { toast('YouTube API Key gerekli!'); import('./utils.js').then(u => u.switchPage('settings')); return; }
   
