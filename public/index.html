@@ -64,9 +64,7 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
-              <span class="text-lg">📝</span>
-            </div>
+            <div class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center"><span class="text-lg">📝</span></div>
             <div>
               <p class="text-2xl font-bold text-slate-900" id="draftCount">-</p>
               <p class="text-xs text-slate-500">Taslak</p>
@@ -75,9 +73,7 @@
         </div>
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-              <span class="text-lg">✅</span>
-            </div>
+            <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center"><span class="text-lg">✅</span></div>
             <div>
               <p class="text-2xl font-bold text-slate-900" id="publishedCount">-</p>
               <p class="text-xs text-slate-500">Yayında</p>
@@ -86,9 +82,7 @@
         </div>
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-              <span class="text-lg">⏰</span>
-            </div>
+            <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center"><span class="text-lg">⏰</span></div>
             <div>
               <p class="text-2xl font-bold text-slate-900" id="scheduledCount">-</p>
               <p class="text-xs text-slate-500">Zamanlanmış</p>
@@ -97,9 +91,7 @@
         </div>
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-              <span class="text-lg">📊</span>
-            </div>
+            <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center"><span class="text-lg">📊</span></div>
             <div>
               <p class="text-2xl font-bold text-slate-900" id="totalCount">-</p>
               <p class="text-xs text-slate-500">Toplam</p>
@@ -130,16 +122,13 @@
           <p class="text-slate-500">Uzun videolardan blog yazısı oluştur</p>
         </div>
         <button onclick="loadYouTubeVideos('video')" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-          Videoları Yükle
+          🔄 Videoları Yükle
         </button>
       </div>
-      
       <div id="youtubeVideosList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div class="col-span-full p-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
           <span class="text-4xl mb-4 block">🎬</span>
           <p>Videoları yüklemek için butona tıklayın</p>
-          <p class="text-sm mt-2">Ayarlar sekmesinden API anahtarlarını kontrol edin</p>
         </div>
       </div>
     </main>
@@ -152,11 +141,9 @@
           <p class="text-slate-500">Kısa videolardan blog yazısı oluştur</p>
         </div>
         <button onclick="loadYouTubeVideos('short')" class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-          Shorts Yükle
+          🔄 Shorts Yükle
         </button>
       </div>
-      
       <div id="shortsVideosList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="col-span-full p-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
           <span class="text-4xl mb-4 block">📱</span>
@@ -168,51 +155,38 @@
     <!-- Settings Page -->
     <main id="settingsPage" class="max-w-3xl mx-auto px-4 py-8 hidden">
       <h2 class="text-2xl font-bold text-slate-900 mb-6">⚙️ Ayarlar</h2>
-      
       <div class="space-y-6">
-        <!-- YouTube API Key -->
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
           <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-              <span class="text-lg">🔑</span>
-            </div>
+            <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center"><span class="text-lg">🔑</span></div>
             <div>
               <h3 class="font-semibold text-slate-900">YouTube API Key</h3>
               <p class="text-xs text-slate-500">Video listesi için</p>
             </div>
           </div>
-          <input type="password" id="youtubeApiKey" placeholder="AIzaSy..." class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-sm">
-          <p class="text-xs text-slate-400 mt-2">Google Cloud Console'dan alabilirsiniz</p>
+          <input type="password" id="youtubeApiKey" placeholder="AIzaSy..." class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm">
         </div>
 
-        <!-- OpenAI API Key -->
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
           <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-              <span class="text-lg">🤖</span>
-            </div>
+            <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center"><span class="text-lg">🤖</span></div>
             <div>
               <h3 class="font-semibold text-slate-900">OpenAI API Key</h3>
               <p class="text-xs text-slate-500">Blog yazısı oluşturmak için</p>
             </div>
           </div>
-          <input type="password" id="openaiApiKey" placeholder="sk-..." class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-sm">
-          <p class="text-xs text-slate-400 mt-2">platform.openai.com'dan alabilirsiniz</p>
+          <input type="password" id="openaiApiKey" placeholder="sk-..." class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm">
         </div>
 
-        <!-- YouTube Channel -->
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
           <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-              <span class="text-lg">📺</span>
-            </div>
+            <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center"><span class="text-lg">📺</span></div>
             <div>
               <h3 class="font-semibold text-slate-900">YouTube Kanal ID</h3>
               <p class="text-xs text-slate-500">Videoları çekilecek kanal</p>
             </div>
           </div>
-          <input type="text" id="youtubeChannelId" placeholder="UC..." class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-sm">
-          <p class="text-xs text-slate-400 mt-2">@atasa_tr için otomatik algılanacak</p>
+          <input type="text" id="youtubeChannelId" placeholder="UC..." class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm">
         </div>
 
         <button onclick="saveSettings()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors">
@@ -222,48 +196,45 @@
     </main>
   </div>
 
-  <!-- Edit Modal -->
+  <!-- Modals -->
   <div id="editModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
       <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
         <h3 class="text-lg font-semibold text-slate-900">Blog Yazısını Düzenle</h3>
-        <button onclick="closeEditModal()" class="p-2 hover:bg-slate-100 rounded-lg transition-colors">✕</button>
+        <button onclick="closeEditModal()" class="p-2 hover:bg-slate-100 rounded-lg">✕</button>
       </div>
       <div class="p-6 overflow-y-auto flex-1">
-        <form id="editForm">
-          <input type="hidden" id="editId">
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Başlık</label>
-              <input type="text" id="editTitle" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" required>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Kategori</label>
-              <input type="text" id="editCategory" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Özet</label>
-              <textarea id="editExcerpt" rows="2" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">İçerik (Markdown)</label>
-              <textarea id="editContent" rows="10" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-sm" required></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Görsel URL</label>
-              <input type="url" id="editThumbnail" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-            </div>
+        <input type="hidden" id="editId">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Başlık</label>
+            <input type="text" id="editTitle" class="w-full px-4 py-2 border border-slate-300 rounded-lg">
           </div>
-        </form>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Kategori</label>
+            <input type="text" id="editCategory" class="w-full px-4 py-2 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Özet</label>
+            <textarea id="editExcerpt" rows="2" class="w-full px-4 py-2 border border-slate-300 rounded-lg resize-none"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">İçerik (Markdown)</label>
+            <textarea id="editContent" rows="10" class="w-full px-4 py-2 border border-slate-300 rounded-lg font-mono text-sm"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Görsel URL</label>
+            <input type="url" id="editThumbnail" class="w-full px-4 py-2 border border-slate-300 rounded-lg">
+          </div>
+        </div>
       </div>
-      <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
-        <button onclick="closeEditModal()" class="px-4 py-2 text-slate-700 hover:bg-slate-200 rounded-lg font-medium transition-colors">İptal</button>
-        <button onclick="savePost()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">Kaydet</button>
+      <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-3 bg-slate-50">
+        <button onclick="closeEditModal()" class="px-4 py-2 text-slate-700 hover:bg-slate-200 rounded-lg font-medium">İptal</button>
+        <button onclick="savePost()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">Kaydet</button>
       </div>
     </div>
   </div>
 
-  <!-- Schedule Modal -->
   <div id="scheduleModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
       <div class="px-6 py-4 border-b border-slate-200">
@@ -272,27 +243,24 @@
       <div class="p-6">
         <input type="hidden" id="scheduleId">
         <label class="block text-sm font-medium text-slate-700 mb-2">Yayın Tarihi ve Saati</label>
-        <input type="datetime-local" id="scheduleDateTime" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+        <input type="datetime-local" id="scheduleDateTime" class="w-full px-4 py-3 border border-slate-300 rounded-lg">
       </div>
-      <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
-        <button onclick="closeScheduleModal()" class="px-4 py-2 text-slate-700 hover:bg-slate-200 rounded-lg font-medium transition-colors">İptal</button>
-        <button onclick="confirmSchedule()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">Zamanla</button>
+      <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-3 bg-slate-50">
+        <button onclick="closeScheduleModal()" class="px-4 py-2 text-slate-700 hover:bg-slate-200 rounded-lg font-medium">İptal</button>
+        <button onclick="confirmSchedule()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">Zamanla</button>
       </div>
     </div>
   </div>
 
-  <!-- Delete Modal -->
   <div id="deleteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
       <div class="p-6 text-center">
-        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span class="text-2xl">🗑️</span>
-        </div>
+        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><span class="text-2xl">🗑️</span></div>
         <h3 class="text-xl font-bold text-slate-900 mb-2">Silmek istediğinize emin misiniz?</h3>
         <p class="text-slate-500 mb-6" id="deletePostTitle">Bu işlem geri alınamaz.</p>
-        <div class="flex items-center justify-center gap-3">
-          <button onclick="closeDeleteModal()" class="px-6 py-2 text-slate-700 hover:bg-slate-100 rounded-lg font-medium transition-colors">İptal</button>
-          <button onclick="confirmDelete()" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors">Sil</button>
+        <div class="flex justify-center gap-3">
+          <button onclick="closeDeleteModal()" class="px-6 py-2 text-slate-700 hover:bg-slate-100 rounded-lg font-medium">İptal</button>
+          <button onclick="confirmDelete()" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium">Sil</button>
         </div>
       </div>
     </div>
@@ -303,10 +271,10 @@
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
       <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
         <h3 class="text-lg font-semibold text-slate-900">🎬 Video → Blog</h3>
-        <button onclick="closeVideoToBlogModal()" class="p-2 hover:bg-slate-100 rounded-lg transition-colors">✕</button>
+        <button onclick="closeVideoToBlogModal()" class="p-2 hover:bg-slate-100 rounded-lg">✕</button>
       </div>
       <div class="p-6 overflow-y-auto flex-1">
-        <div id="videoInfo" class="mb-6">
+        <div class="mb-6">
           <div class="flex gap-4">
             <img id="modalVideoThumbnail" src="" class="w-40 h-24 object-cover rounded-lg">
             <div>
@@ -317,20 +285,34 @@
           </div>
         </div>
         
-        <div id="transcriptSection">
+        <div>
           <div class="flex items-center justify-between mb-2">
             <label class="block text-sm font-medium text-slate-700">Altyazı / Transkript</label>
             <span id="transcriptStatus" class="text-xs text-slate-400"></span>
           </div>
-          <textarea id="videoTranscript" rows="8" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm" placeholder="Altyazı yüklemek için 'Altyazı Çek' butonuna tıklayın veya manuel yapıştırın..."></textarea>
-          <div class="flex gap-2 mt-3">
-            <button onclick="fetchTranscript()" id="fetchTranscriptBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-              <span id="fetchBtnIcon">📥</span>
-              <span id="fetchBtnText">Altyazı Çek</span>
+          <textarea id="videoTranscript" rows="8" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm" placeholder="Altyazıyı buraya yapıştırın veya 'Altyazı Çek' butonuna tıklayın..."></textarea>
+          
+          <div class="flex flex-wrap gap-2 mt-3">
+            <button onclick="fetchTranscriptClient()" id="fetchTranscriptBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors">
+              📥 Altyazı Çek
+            </button>
+            <button onclick="copyFromYouTube()" class="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-sm font-medium transition-colors">
+              📋 YouTube'dan Kopyala
             </button>
             <button onclick="generateBlogFromTranscript()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors">
-              🤖 Blog Oluştur (OpenAI)
+              🤖 Blog Oluştur
             </button>
+          </div>
+          
+          <div id="youtubeInstructions" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg hidden">
+            <h4 class="font-semibold text-amber-800 mb-2">📋 YouTube'dan Altyazı Kopyalama:</h4>
+            <ol class="text-sm text-amber-700 space-y-1 list-decimal list-inside">
+              <li>Yukarıdaki "YouTube'da izle" linkine tıklayın</li>
+              <li>Video altındaki <strong>"...daha fazla"</strong> butonuna tıklayın</li>
+              <li><strong>"Döküm göster"</strong> veya <strong>"Show transcript"</strong> butonuna tıklayın</li>
+              <li>Açılan panelde tüm metni seçin (Ctrl+A) ve kopyalayın (Ctrl+C)</li>
+              <li>Buraya yapıştırın (Ctrl+V)</li>
+            </ol>
           </div>
         </div>
 
@@ -342,26 +324,20 @@
           </div>
         </div>
       </div>
-      <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
-        <button onclick="closeVideoToBlogModal()" class="px-4 py-2 text-slate-700 hover:bg-slate-200 rounded-lg font-medium transition-colors">İptal</button>
-        <button onclick="saveBlogAsDraft()" id="saveDraftBtn" class="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors hidden">
-          📝 Taslak Kaydet
-        </button>
-        <button onclick="saveBlogAndPublish()" id="publishBlogBtn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors hidden">
-          🚀 Yayınla
-        </button>
+      <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-3 bg-slate-50">
+        <button onclick="closeVideoToBlogModal()" class="px-4 py-2 text-slate-700 hover:bg-slate-200 rounded-lg font-medium">İptal</button>
+        <button onclick="saveBlogAsDraft()" id="saveDraftBtn" class="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium hidden">📝 Taslak</button>
+        <button onclick="saveBlogAndPublish()" id="publishBlogBtn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium hidden">🚀 Yayınla</button>
       </div>
     </div>
   </div>
 
   <!-- Toast -->
   <div id="toast" class="fixed bottom-4 right-4 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
-    <div class="bg-slate-900 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3">
-      <span id="toastMessage">İşlem başarılı</span>
-    </div>
+    <div class="bg-slate-900 text-white px-6 py-3 rounded-xl shadow-lg"><span id="toastMessage"></span></div>
   </div>
 
-  <!-- Loading Overlay -->
+  <!-- Loading -->
   <div id="loadingOverlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-8 text-center">
       <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -380,8 +356,8 @@
     let autopilotEnabled = false;
     let currentVideoId = null;
     let currentVideoType = 'video';
+    let currentVideo = null;
 
-    // Settings
     let settings = {
       youtubeApiKey: '',
       openaiApiKey: '',
@@ -394,12 +370,10 @@
       loadPosts();
     });
 
-    // Local Storage for API Keys
     function loadLocalSettings() {
       settings.youtubeApiKey = localStorage.getItem('youtubeApiKey') || '';
       settings.openaiApiKey = localStorage.getItem('openaiApiKey') || '';
       settings.channelId = localStorage.getItem('channelId') || '';
-      
       document.getElementById('youtubeApiKey').value = settings.youtubeApiKey;
       document.getElementById('openaiApiKey').value = settings.openaiApiKey;
       document.getElementById('youtubeChannelId').value = settings.channelId;
@@ -409,28 +383,21 @@
       settings.youtubeApiKey = document.getElementById('youtubeApiKey').value.trim();
       settings.openaiApiKey = document.getElementById('openaiApiKey').value.trim();
       settings.channelId = document.getElementById('youtubeChannelId').value.trim();
-      
       localStorage.setItem('youtubeApiKey', settings.youtubeApiKey);
       localStorage.setItem('openaiApiKey', settings.openaiApiKey);
       localStorage.setItem('channelId', settings.channelId);
-      
       showToast('Ayarlar kaydedildi ✓');
     }
 
-    // Page Switching
     function switchPage(page) {
       ['posts', 'youtube', 'shorts', 'settings'].forEach(p => {
         document.getElementById(`${p}Page`).classList.add('hidden');
         document.getElementById(`page-${p}`).classList.remove('page-tab-active');
-        document.getElementById(`page-${p}`).classList.add('hover:bg-white');
       });
-      
       document.getElementById(`${page}Page`).classList.remove('hidden');
       document.getElementById(`page-${page}`).classList.add('page-tab-active');
-      document.getElementById(`page-${page}`).classList.remove('hover:bg-white');
     }
 
-    // Server Settings (autopilot)
     async function loadSettings() {
       try {
         const response = await fetch(`${API_URL}/api/settings`);
@@ -457,46 +424,35 @@
     }
 
     async function toggleAutopilot() {
-      try {
-        autopilotEnabled = !autopilotEnabled;
-        updateAutopilotUI();
-        await fetch(`${API_URL}/api/settings`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ autopilot: autopilotEnabled })
-        });
-        showToast(autopilotEnabled ? 'Otopilot açıldı' : 'Otopilot kapatıldı');
-      } catch (error) {
-        autopilotEnabled = !autopilotEnabled;
-        updateAutopilotUI();
-      }
+      autopilotEnabled = !autopilotEnabled;
+      updateAutopilotUI();
+      await fetch(`${API_URL}/api/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ autopilot: autopilotEnabled })
+      });
+      showToast(autopilotEnabled ? 'Otopilot açıldı' : 'Otopilot kapatıldı');
     }
 
-    // Posts Functions
     async function loadPosts() {
       const postsList = document.getElementById('postsList');
       postsList.innerHTML = '<div class="p-8 text-center text-slate-500">Yükleniyor...</div>';
-
       try {
         const response = await fetch(`${API_URL}/api/posts/all`);
         posts = await response.json();
-        
         document.getElementById('draftCount').textContent = posts.filter(p => p.status === 'draft').length;
         document.getElementById('publishedCount').textContent = posts.filter(p => p.status === 'published').length;
         document.getElementById('scheduledCount').textContent = posts.filter(p => p.status === 'scheduled').length;
         document.getElementById('totalCount').textContent = posts.length;
-
         renderPosts();
       } catch (error) {
-        postsList.innerHTML = '<div class="p-8 text-center text-red-500">API\'ye bağlanılamadı</div>';
+        postsList.innerHTML = '<div class="p-8 text-center text-red-500">API bağlantı hatası</div>';
       }
     }
 
     function setFilter(filter) {
       currentFilter = filter;
-      document.querySelectorAll('[id^="tab-"]').forEach(tab => {
-        tab.classList.remove('tab-active');
-      });
+      document.querySelectorAll('[id^="tab-"]').forEach(tab => tab.classList.remove('tab-active'));
       document.getElementById(`tab-${filter}`).classList.add('tab-active');
       renderPosts();
     }
@@ -504,12 +460,10 @@
     function renderPosts() {
       const postsList = document.getElementById('postsList');
       let filtered = currentFilter === 'all' ? posts : posts.filter(p => p.status === currentFilter);
-
       if (filtered.length === 0) {
         postsList.innerHTML = '<div class="p-8 text-center text-slate-500">Bu kategoride yazı yok</div>';
         return;
       }
-
       postsList.innerHTML = filtered.map(post => `
         <div class="p-4 hover:bg-slate-50 transition-colors">
           <div class="flex items-start gap-4">
@@ -535,11 +489,11 @@
                   ` : ''}
                   ${post.status === 'published' ? `<button onclick="unpublishPost('${post.id}')" class="p-2 hover:bg-yellow-100 text-yellow-600 rounded-lg" title="Taslağa Al">↩</button>` : ''}
                   ${post.status === 'scheduled' ? `
-                    <button onclick="publishPost('${post.id}')" class="p-2 hover:bg-green-100 text-green-600 rounded-lg" title="Şimdi Yayınla">✓</button>
-                    <button onclick="unpublishPost('${post.id}')" class="p-2 hover:bg-yellow-100 text-yellow-600 rounded-lg" title="İptal">✕</button>
+                    <button onclick="publishPost('${post.id}')" class="p-2 hover:bg-green-100 text-green-600 rounded-lg">✓</button>
+                    <button onclick="unpublishPost('${post.id}')" class="p-2 hover:bg-yellow-100 text-yellow-600 rounded-lg">✕</button>
                   ` : ''}
-                  <button onclick="openEditModal('${post.id}')" class="p-2 hover:bg-slate-100 text-slate-600 rounded-lg" title="Düzenle">✏️</button>
-                  <button onclick="openDeleteModal('${post.id}', '${post.title.replace(/'/g, "\\'")}')" class="p-2 hover:bg-red-100 text-red-600 rounded-lg" title="Sil">🗑️</button>
+                  <button onclick="openEditModal('${post.id}')" class="p-2 hover:bg-slate-100 text-slate-600 rounded-lg">✏️</button>
+                  <button onclick="openDeleteModal('${post.id}', '${post.title.replace(/'/g, "\\'")}')" class="p-2 hover:bg-red-100 text-red-600 rounded-lg">🗑️</button>
                 </div>
               </div>
             </div>
@@ -569,7 +523,6 @@
       loadPosts();
     }
 
-    // Modal Functions
     function openEditModal(id) {
       const post = posts.find(p => p.id === id);
       if (!post) return;
@@ -590,17 +543,16 @@
 
     async function savePost() {
       const id = document.getElementById('editId').value;
-      const data = {
-        title: document.getElementById('editTitle').value,
-        category: document.getElementById('editCategory').value,
-        excerpt: document.getElementById('editExcerpt').value,
-        content: document.getElementById('editContent').value,
-        thumbnail: document.getElementById('editThumbnail').value
-      };
       await fetch(`${API_URL}/api/posts/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          title: document.getElementById('editTitle').value,
+          category: document.getElementById('editCategory').value,
+          excerpt: document.getElementById('editExcerpt').value,
+          content: document.getElementById('editContent').value,
+          thumbnail: document.getElementById('editThumbnail').value
+        })
       });
       showToast('Yazı güncellendi');
       closeEditModal();
@@ -658,7 +610,6 @@
     // YouTube Functions
     async function getChannelId() {
       if (settings.channelId) return settings.channelId;
-      
       const response = await fetch(`${YOUTUBE_API_BASE}/search?part=snippet&type=channel&q=${CHANNEL_HANDLE}&key=${settings.youtubeApiKey}`);
       const data = await response.json();
       if (data.items && data.items.length > 0) {
@@ -672,7 +623,7 @@
 
     async function loadYouTubeVideos(type = 'video') {
       if (!settings.youtubeApiKey) {
-        showToast('YouTube API Key gerekli! Ayarlar sekmesine gidin.');
+        showToast('YouTube API Key gerekli!');
         switchPage('settings');
         return;
       }
@@ -683,7 +634,6 @@
 
       try {
         const channelId = await getChannelId();
-        
         const searchUrl = `${YOUTUBE_API_BASE}/search?part=snippet&channelId=${channelId}&maxResults=50&order=date&type=video&key=${settings.youtubeApiKey}`;
         const response = await fetch(searchUrl);
         const data = await response.json();
@@ -726,7 +676,7 @@
               <h3 class="font-semibold text-slate-900 line-clamp-2 mb-2">${video.snippet.title}</h3>
               <div class="flex items-center justify-between text-xs text-slate-500">
                 <span>${new Date(video.snippet.publishedAt).toLocaleDateString('tr-TR')}</span>
-                <span>${formatViews(video.views)} görüntüleme</span>
+                <span>${formatViews(video.views)} izlenme</span>
               </div>
             </div>
           </div>
@@ -740,10 +690,7 @@
 
     function parseDuration(duration) {
       const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
-      const hours = parseInt(match[1]) || 0;
-      const minutes = parseInt(match[2]) || 0;
-      const seconds = parseInt(match[3]) || 0;
-      return hours * 3600 + minutes * 60 + seconds;
+      return (parseInt(match[1]) || 0) * 3600 + (parseInt(match[2]) || 0) * 60 + (parseInt(match[3]) || 0);
     }
 
     function formatDuration(seconds) {
@@ -760,9 +707,6 @@
       return views;
     }
 
-    // Video to Blog Modal
-    let currentVideo = null;
-
     async function openVideoToBlogModal(videoId, type) {
       currentVideoId = videoId;
       currentVideoType = type;
@@ -774,8 +718,7 @@
       document.getElementById('blogPreviewSection').classList.add('hidden');
       document.getElementById('saveDraftBtn').classList.add('hidden');
       document.getElementById('publishBlogBtn').classList.add('hidden');
-      document.getElementById('fetchBtnIcon').textContent = '📥';
-      document.getElementById('fetchBtnText').textContent = 'Altyazı Çek';
+      document.getElementById('youtubeInstructions').classList.add('hidden');
       
       try {
         const response = await fetch(`${YOUTUBE_API_BASE}/videos?part=snippet&id=${videoId}&key=${settings.youtubeApiKey}`);
@@ -798,61 +741,56 @@
       currentVideo = null;
     }
 
-    async function fetchTranscript() {
+    // Client-side transcript fetch using third-party API
+    async function fetchTranscriptClient() {
       if (!currentVideoId) return;
       
-      const btn = document.getElementById('fetchTranscriptBtn');
-      const icon = document.getElementById('fetchBtnIcon');
-      const text = document.getElementById('fetchBtnText');
       const status = document.getElementById('transcriptStatus');
-      
+      const btn = document.getElementById('fetchTranscriptBtn');
       btn.disabled = true;
-      icon.textContent = '⏳';
-      text.textContent = 'Çekiliyor...';
+      btn.textContent = '⏳ Çekiliyor...';
       status.textContent = '';
       
       try {
-        // Backend API'den altyazı çek
-        const response = await fetch(`${API_URL}/api/youtube/transcript/${currentVideoId}`);
-        const data = await response.json();
+        // Try third-party transcript API
+        const response = await fetch(`https://yt.lemnoslife.com/videos?part=transcript&id=${currentVideoId}`);
         
-        if (data.success && data.transcript) {
-          document.getElementById('videoTranscript').value = data.transcript;
-          status.textContent = `✓ ${data.wordCount} kelime, ${data.segmentCount} segment`;
+        if (!response.ok) throw new Error('API yanıt vermedi');
+        
+        const data = await response.json();
+        const transcript = data?.items?.[0]?.transcript?.content;
+        
+        if (transcript && transcript.length > 0) {
+          const text = transcript.map(item => item.text).join(' ').replace(/\s+/g, ' ').trim();
+          document.getElementById('videoTranscript').value = text;
+          status.textContent = `✓ ${transcript.length} segment, ${text.split(' ').length} kelime`;
           status.classList.remove('text-red-500');
           status.classList.add('text-green-600');
-          showToast('Altyazı başarıyla çekildi! ✓');
+          showToast('Altyazı çekildi! ✓');
         } else {
-          throw new Error(data.message || 'Altyazı bulunamadı');
+          throw new Error('Altyazı bulunamadı');
         }
-        
-        icon.textContent = '✓';
-        text.textContent = 'Altyazı Çekildi';
-        btn.classList.remove('bg-red-600', 'hover:bg-red-700');
-        btn.classList.add('bg-green-600', 'hover:bg-green-700');
-        
       } catch (error) {
         console.error('Transcript error:', error);
-        icon.textContent = '❌';
-        text.textContent = 'Tekrar Dene';
-        status.textContent = error.message || 'Altyazı çekilemedi';
+        status.textContent = 'Otomatik altyazı çekilemedi';
         status.classList.add('text-red-500');
         status.classList.remove('text-green-600');
-        
-        // Video açıklamasını alternatif olarak göster
-        if (currentVideo?.snippet?.description) {
-          document.getElementById('videoTranscript').value = `[Otomatik altyazı bulunamadı]\n\nVideo Açıklaması:\n${currentVideo.snippet.description}\n\n---\nManuel olarak altyazı yapıştırabilirsiniz.`;
-        }
-        
-        showToast('Altyazı çekilemedi. Manuel yapıştırabilirsiniz.');
+        document.getElementById('youtubeInstructions').classList.remove('hidden');
+        showToast('Manuel kopyalama gerekli');
       } finally {
         btn.disabled = false;
+        btn.textContent = '📥 Altyazı Çek';
       }
+    }
+
+    function copyFromYouTube() {
+      document.getElementById('youtubeInstructions').classList.remove('hidden');
+      window.open(`https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
     }
 
     async function generateBlogFromTranscript() {
       if (!settings.openaiApiKey) {
-        showToast('OpenAI API Key gerekli! Ayarlar sekmesine gidin.');
+        showToast('OpenAI API Key gerekli!');
         switchPage('settings');
         closeVideoToBlogModal();
         return;
@@ -860,7 +798,7 @@
 
       const transcript = document.getElementById('videoTranscript').value.trim();
       if (!transcript || transcript.length < 50) {
-        showToast('Önce altyazı/transkript girin (en az 50 karakter)');
+        showToast('Önce altyazı girin (en az 50 karakter)');
         return;
       }
 
@@ -878,28 +816,24 @@
             messages: [
               {
                 role: 'system',
-                content: `Sen profesyonel bir Türk blog yazarısın. Sana verilen YouTube video transkriptini SEO uyumlu, akıcı ve okuyucu dostu bir blog yazısına dönüştür.
+                content: `Sen profesyonel bir Türk blog yazarısın. YouTube video transkriptini SEO uyumlu blog yazısına dönüştür.
 
 Kurallar:
-- Türkçe yaz
-- Markdown formatında yaz
-- Başlık için ## kullan (ana başlık)
+- Türkçe yaz, Markdown formatında
+- Ana başlık için ## kullan
 - Alt başlıklar için ### kullan
-- Konuşma dilini düzgün yazı diline çevir
 - "eee", "hani", "işte", "yani" gibi dolgu kelimeleri temizle
-- 400-800 kelime arası yaz
-- Bilgilendirici ve profesyonel bir ton kullan
-- Sonunda kısa bir özet veya sonuç bölümü ekle
-- İçeriği mantıklı paragraflara böl
+- 400-800 kelime arası, profesyonel ton
+- Sonunda kısa özet ekle
 
-Çıktı formatı:
-BAŞLIK: [Blog başlığı - SEO uyumlu, dikkat çekici]
+Format:
+BAŞLIK: [SEO uyumlu başlık]
 ---
-[Blog içeriği markdown formatında]`
+[Markdown içerik]`
               },
               {
                 role: 'user',
-                content: `Video Başlığı: ${currentVideo?.snippet?.title || 'Video'}\n\nTranskript:\n${transcript}`
+                content: `Video: ${currentVideo?.snippet?.title || 'Video'}\n\nTranskript:\n${transcript}`
               }
             ],
             temperature: 0.7,
@@ -908,13 +842,9 @@ BAŞLIK: [Blog başlığı - SEO uyumlu, dikkat çekici]
         });
 
         const data = await response.json();
-        
-        if (data.error) {
-          throw new Error(data.error.message);
-        }
+        if (data.error) throw new Error(data.error.message);
 
         const content = data.choices[0].message.content;
-        
         const titleMatch = content.match(/BAŞLIK:\s*(.+)/);
         const blogTitle = titleMatch ? titleMatch[1].trim() : currentVideo?.snippet?.title || 'Blog Yazısı';
         const blogContent = content.replace(/BAŞLIK:\s*.+\n---\n?/, '').trim();
@@ -926,26 +856,19 @@ BAŞLIK: [Blog başlığı - SEO uyumlu, dikkat çekici]
         document.getElementById('publishBlogBtn').classList.remove('hidden');
 
         hideLoading();
-        showToast('Blog yazısı oluşturuldu! ✓');
+        showToast('Blog oluşturuldu! ✓');
       } catch (error) {
         hideLoading();
         showToast('Hata: ' + error.message);
-        console.error('OpenAI error:', error);
       }
     }
 
-    async function saveBlogAsDraft() {
-      await saveBlog('draft');
-    }
-
-    async function saveBlogAndPublish() {
-      await saveBlog('published');
-    }
+    async function saveBlogAsDraft() { await saveBlog('draft'); }
+    async function saveBlogAndPublish() { await saveBlog('published'); }
 
     async function saveBlog(status) {
       const title = document.getElementById('blogPreviewTitle').value.trim();
       const content = document.getElementById('blogPreviewContent').value.trim();
-      
       if (!title || !content) {
         showToast('Başlık ve içerik gerekli');
         return;
@@ -954,23 +877,18 @@ BAŞLIK: [Blog başlığı - SEO uyumlu, dikkat çekici]
       showLoading('Kaydediliyor...');
 
       try {
-        const category = currentVideoType === 'short' ? 'Shorts' : 'YouTube';
-        const thumbnail = currentVideo?.snippet?.thumbnails?.high?.url || currentVideo?.snippet?.thumbnails?.medium?.url || '';
-
-        const response = await fetch(`${API_URL}/api/posts`, {
+        await fetch(`${API_URL}/api/posts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title,
             content,
-            category,
-            thumbnail,
+            category: currentVideoType === 'short' ? 'Shorts' : 'YouTube',
+            thumbnail: currentVideo?.snippet?.thumbnails?.high?.url || '',
             status
           })
         });
 
-        const data = await response.json();
-        
         hideLoading();
         closeVideoToBlogModal();
         showToast(status === 'published' ? 'Blog yayınlandı! 🚀' : 'Taslak kaydedildi! 📝');
@@ -982,7 +900,6 @@ BAŞLIK: [Blog başlığı - SEO uyumlu, dikkat çekici]
       }
     }
 
-    // Utility Functions
     function showToast(message) {
       const toast = document.getElementById('toast');
       document.getElementById('toastMessage').textContent = message;
