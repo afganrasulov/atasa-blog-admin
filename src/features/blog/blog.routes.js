@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { generateUniqueSlug, calculateReadTime, formatPost } from '../../shared/helpers.js';
+import { generateUniqueSlug, calculateReadTime, formatPost, resolveInternalLinks } from '../../shared/helpers.js';
 
 export function blogRoutes(pool) {
     const router = Router();
@@ -115,6 +115,24 @@ export function blogRoutes(pool) {
             }
             res.json({ success: true, deleted: result.rows[0].title });
         } catch (error) { res.status(500).json({ error: 'Internal server error' }); }
+    });
+
+    // Fix internal links in all existing posts
+    router.post('/fix-internal-links', async (req, res) => {
+        try {
+            const postsResult = await pool.query(`SELECT id, content FROM blog_posts WHERE content LIKE '%[İLGİLİ:%'`);
+            if (postsResult.rows.length === 0) return res.json({ success: true, fixed: 0, message: 'No posts with placeholders found' });
+
+            let fixed = 0;
+            for (const post of postsResult.rows) {
+                const newContent = await resolveInternalLinks(post.content, post.id);
+                if (newContent !== post.content) {
+                    await pool.query('UPDATE blog_posts SET content = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [newContent, post.id]);
+                    fixed++;
+                }
+            }
+            res.json({ success: true, fixed, total: postsResult.rows.length });
+        } catch (error) { res.status(500).json({ error: error.message }); }
     });
 
     return router;

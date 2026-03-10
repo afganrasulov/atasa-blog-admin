@@ -65,7 +65,7 @@ export function transcriptionRoutes(pool) {
             const seoRules = await getSetting('ai_seo_rules') || getDefaultSeoRules();
             const systemPrompt = seoRules ? `${blogPrompt}\n\n--- AI SEO KURALLARI ---\n${seoRules}` : blogPrompt;
 
-            const { generateUniqueSlug, calculateReadTime } = await import('../../shared/helpers.js');
+            const { generateUniqueSlug, calculateReadTime, resolveInternalLinks } = await import('../../shared/helpers.js');
 
             const res = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
@@ -77,7 +77,8 @@ export function transcriptionRoutes(pool) {
             const content = data.choices[0].message.content;
             const titleMatch = content.match(/BAŞLIK:\s*(.+)/);
             const blogTitle = titleMatch ? titleMatch[1].trim() : video.title;
-            const blogContent = content.replace(/BAŞLIK:\s*.+\n---\n?/, '').trim();
+            const rawContent = content.replace(/BAŞLIK:\s*.+\n---\n?/, '').trim();
+            const blogContent = await resolveInternalLinks(rawContent);
             const autoPublish = await getSetting('auto_publish');
             const postStatus = autoPublish === 'true' ? 'published' : 'draft';
             const slug = await generateUniqueSlug(blogTitle);
@@ -189,8 +190,8 @@ Verilen video transkriptini kullanarak hem Google hem de AI arama platformların
 - Başlık 50-60 karakter, ana anahtar kelimeyi içersin
 - İlk 160 karakterde ana konu geçsin (meta description)
 - Doğal anahtar kelime yoğunluğu (%1-2)
-- İç bağlantı önerileri: [İLGİLİ: konu] formatında
-- "Türkiye", "2025", "güncel" gibi taze kelimeler kullan
+- İç bağlantı önerileri: [İLGİLİ: konu başlığı] formatında yaz. Sistem bunları otomatik gerçek linklere dönüştürecek.
+- "Türkiye", "güncel" gibi taze kelimeler kullan
 
 ## AI SEO (AEO) KURALLARI
 - Doğrudan, net cevaplar ver (AI snippet'a uygun)

@@ -44,3 +44,78 @@ export function formatPost(row) {
         createdAt: row.created_at, updatedAt: row.updated_at
     };
 }
+
+// Resolve [İLGİLİ: konu] placeholders to real internal links
+export async function resolveInternalLinks(content, currentPostId = null) {
+    const SITE_URL = 'https://atasa.tr';
+    const placeholderRegex = /\[İLGİLİ:\s*([^\]]+)\]/gi;
+    const matches = [...content.matchAll(placeholderRegex)];
+
+    if (matches.length === 0) return content;
+
+    // Get all blog posts for matching
+    let query = 'SELECT id, title, slug FROM blog_posts WHERE status IN ($1, $2)';
+    const params = ['published', 'draft'];
+    if (currentPostId) {
+        query += ' AND id != $3';
+        params.push(currentPostId);
+    }
+    const { rows: allPosts } = await pool.query(query, params);
+
+    if (allPosts.length === 0) {
+        // No posts to link to — remove placeholders
+        return content.replace(placeholderRegex, '');
+    }
+
+    let result = content;
+
+    for (const match of matches) {
+        const fullMatch = match[0];
+        const topic = match[1].trim().toLowerCase();
+        const topicWords = topic.split(/\s+/).filter(w => w.length > 2);
+
+        // Score each post by keyword overlap
+        let bestMatch = null;
+        let bestScore = 0;
+
+        for (const post of allPosts) {
+            const titleLower = post.title.toLowerCase();
+            let score = 0;
+
+            // Exact substring match (strongest signal)
+            if (titleLower.includes(topic)) {
+                score += 10;
+            }
+
+            // Word-level matching
+            for (const word of topicWords) {
+                if (titleLower.includes(word)) {
+                    score += 2;
+                }
+            }
+
+            // Bonus for shorter titles (more specific match)
+            if (score > 0 && post.title.length < 80) {
+                score += 1;
+            }
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestMatch = post;
+            }
+        }
+
+        if (bestMatch && bestScore >= 2) {
+            // Replace with real HTML link
+            const link = `<a href="${SITE_URL}/blog/${bestMatch.slug}" title="${bestMatch.title}">${bestMatch.title}</a>`;
+            result = result.replace(fullMatch, `👉 İlgili yazı: ${link}`);
+        } else {
+            // No good match found — just remove the placeholder
+            result = result.replace(fullMatch, '');
+        }
+    }
+
+    // Clean up any leftover empty lines
+    result = result.replace(/\n{3,}/g, '\n\n');
+    return result;
+}
