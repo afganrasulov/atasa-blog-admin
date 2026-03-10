@@ -188,6 +188,7 @@ Verilen video transkriptini kullanarak hem Google hem de AI arama platformların
 
 ## SEO KURALLARI
 - Başlık 50-60 karakter, ana anahtar kelimeyi içersin
+- Başlığa YIL EKLEME (2023, 2024, 2025, 2026 vb.) — evergreen başlıklar yaz
 - İlk 160 karakterde ana konu geçsin (meta description)
 - Doğal anahtar kelime yoğunluğu (%1-2)
 - İç bağlantı önerileri: [İLGİLİ: konu başlığı] formatında yaz. Sistem bunları otomatik gerçek linklere dönüştürecek.
