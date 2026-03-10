@@ -12,28 +12,75 @@ if (!fs.existsSync(AUDIO_DIR)) fs.mkdirSync(AUDIO_DIR, { recursive: true });
 
 export { AUDIO_DIR };
 
-// Fallback chain for audio extraction
+// Check & update yt-dlp before extraction
+async function ensureYtDlpUpdated() {
+    try {
+        const { stdout } = await execAsync('yt-dlp --version', { timeout: 10000 });
+        const version = stdout.trim();
+        const versionDate = new Date(version.replace(/\./g, '-'));
+        const daysSinceUpdate = (Date.now() - versionDate.getTime()) / (1000 * 60 * 60 * 24);
+
+        if (daysSinceUpdate > 30) {
+            console.log(`🔄 yt-dlp is ${Math.floor(daysSinceUpdate)} days old (${version}), updating...`);
+            try {
+                await execAsync('yt-dlp -U', { timeout: 60000 });
+                const { stdout: newVersion } = await execAsync('yt-dlp --version', { timeout: 10000 });
+                console.log(`✅ yt-dlp updated: ${version} → ${newVersion.trim()}`);
+            } catch (e) {
+                console.log(`⚠️ yt-dlp update failed (continuing with ${version}): ${e.message.split('\n')[0]}`);
+            }
+        }
+    } catch {
+        console.log('⚠️ Could not check yt-dlp version');
+    }
+}
+
+// Fallback chain for audio extraction — 6 different strategies
 export async function extractAudio(videoId) {
     const url = `https://www.youtube.com/watch?v=${videoId}`;
     const outputPath = path.join(AUDIO_DIR, `${videoId}.mp3`);
 
     if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
 
+    // Auto-update yt-dlp if stale
+    await ensureYtDlpUpdated();
+
     const methods = [
+        // 1. Standard best audio
         {
-            name: 'bestaudio',
+            name: 'bestaudio/mp3',
             cmd: `yt-dlp -f bestaudio -x --audio-format mp3 --audio-quality 128K -o "${outputPath}" "${url}"`,
             timeout: 300000
         },
+        // 2. Specific format: m4a then convert (sometimes mp3 extraction fails but m4a works)
         {
-            name: 'no-format-select',
-            cmd: `yt-dlp -x --audio-format mp3 --audio-quality 128K --no-check-certificates -o "${outputPath}" "${url}"`,
+            name: 'bestaudio/m4a→mp3',
+            cmd: `yt-dlp -f bestaudio[ext=m4a]/bestaudio -x --audio-format mp3 --audio-quality 128K --no-check-certificates -o "${outputPath}" "${url}"`,
             timeout: 300000
         },
+        // 3. Download worst video+audio (small file) then extract audio — works when audio-only streams are blocked
         {
-            name: 'geo-bypass',
-            cmd: `yt-dlp -x --audio-format mp3 --audio-quality 128K --geo-bypass --extractor-retries 5 --force-ipv4 --sleep-interval 2 --no-check-certificates -o "${outputPath}" "${url}"`,
-            timeout: 420000
+            name: 'worstvideo+audio→mp3',
+            cmd: `yt-dlp -f "worstvideo+bestaudio/worst" -x --audio-format mp3 --audio-quality 128K --no-check-certificates -o "${outputPath}" "${url}"`,
+            timeout: 360000
+        },
+        // 4. No format selection — let yt-dlp decide best approach
+        {
+            name: 'auto-format',
+            cmd: `yt-dlp -x --audio-format mp3 --audio-quality 128K --no-check-certificates --extractor-retries 5 -o "${outputPath}" "${url}"`,
+            timeout: 300000
+        },
+        // 5. Geo bypass + IPv4 + retries + slower pace
+        {
+            name: 'geo-bypass+slow',
+            cmd: `yt-dlp -x --audio-format mp3 --audio-quality 128K --geo-bypass --extractor-retries 10 --force-ipv4 --sleep-interval 3 --max-sleep-interval 6 --no-check-certificates --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -o "${outputPath}" "${url}"`,
+            timeout: 480000
+        },
+        // 6. Pipe through ffmpeg directly (last resort: download any format, pipe to ffmpeg)
+        {
+            name: 'pipe-to-ffmpeg',
+            cmd: `yt-dlp -f "bestaudio/best" --no-check-certificates -o - "${url}" | ffmpeg -i pipe:0 -vn -acodec libmp3lame -b:a 128k -y "${outputPath}"`,
+            timeout: 480000
         }
     ];
 
@@ -43,8 +90,14 @@ export async function extractAudio(videoId) {
         const method = methods[i];
         console.log(`🎵 [${i + 1}/${methods.length}] Trying "${method.name}" for ${videoId}...`);
         try {
-            if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
-            await execAsync(method.cmd, { timeout: method.timeout });
+            // Clean up before each attempt
+            cleanupPartialFiles(outputPath);
+
+            await execAsync(method.cmd, {
+                timeout: method.timeout,
+                shell: '/bin/bash',
+                maxBuffer: 50 * 1024 * 1024 // 50MB buffer
+            });
 
             if (fs.existsSync(outputPath)) {
                 const stats = fs.statSync(outputPath);
@@ -61,13 +114,18 @@ export async function extractAudio(videoId) {
             const shortError = error.message.split('\n')[0].substring(0, 200);
             console.log(`⚠️ "${method.name}" failed: ${shortError}`);
             errors.push(`${method.name}: ${shortError}`);
-            if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
-            const partFile = outputPath + '.part';
-            if (fs.existsSync(partFile)) fs.unlinkSync(partFile);
+            cleanupPartialFiles(outputPath);
         }
     }
 
-    throw new Error(`All ${methods.length} extraction methods failed:\n${errors.join('\n')}`);
+    throw new Error(`All ${methods.length} extraction methods failed for ${videoId}:\n${errors.join('\n')}`);
+}
+
+function cleanupPartialFiles(outputPath) {
+    for (const suffix of ['', '.part', '.temp', '.webm', '.m4a']) {
+        const f = outputPath + suffix;
+        if (fs.existsSync(f)) try { fs.unlinkSync(f); } catch { }
+    }
 }
 
 // Transcribe with OpenAI Whisper
