@@ -4,14 +4,17 @@ import { toast, showLoading, hideLoading, switchPage } from '../../shared/utils.
 import { loadVideos, renderVideos } from './videos.js';
 import { getBlogSystemPrompt } from '../settings/settings.js';
 
-// Retry all failed transcriptions for a given type
+// Retry all failed transcriptions for a given type (excluding live streams)
 export async function retryFailedTranscriptions(type) {
-    const failedVideos = state.cachedVideos[type].filter(v => v.transcript_status === 'failed');
-    if (failedVideos.length === 0) { toast('Hatalı video bulunamadı'); return; }
+    const allFailed = state.cachedVideos[type].filter(v => v.transcript_status === 'failed');
+    const liveStreams = allFailed.filter(v => v.title && v.title.toLowerCase().includes('canlı yayın'));
+    const failedVideos = allFailed.filter(v => !v.title || !v.title.toLowerCase().includes('canlı yayın'));
+    if (failedVideos.length === 0) { toast(liveStreams.length > 0 ? `${liveStreams.length} canlı yayın atlandı, başka hatalı video yok` : 'Hatalı video bulunamadı'); return; }
     const config = getTranscriptionConfig();
     if (!config) return;
     const ids = failedVideos.map(v => v.id);
-    showLoading(`${ids.length} hatalı video yeniden deneniyor...`);
+    const skipMsg = liveStreams.length > 0 ? ` (${liveStreams.length} canlı yayın atlandı)` : '';
+    showLoading(`${ids.length} hatalı video yeniden deneniyor${skipMsg}...`);
     try {
         // Reset failed statuses first
         await fetch(`${API}/api/youtube/videos/reset-failed`, {
@@ -25,7 +28,7 @@ export async function retryFailedTranscriptions(type) {
         });
         hideLoading();
         await loadVideos();
-        toast(`${ids.length} video için deşifre yeniden başlatıldı ✓`);
+        toast(`${ids.length} video için deşifre yeniden başlatıldı${skipMsg} ✓`);
     } catch (e) { hideLoading(); toast('Hata: ' + e.message); }
 }
 
