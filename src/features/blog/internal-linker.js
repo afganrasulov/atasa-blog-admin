@@ -16,7 +16,7 @@ export async function buildInternalLinks(postId) {
 
     // Get all other posts for linking
     const { rows: otherPosts } = await pool.query(
-        `SELECT title, slug FROM blog_posts WHERE id != $1 AND status IN ('published', 'draft') ORDER BY created_at DESC`,
+        `SELECT title, slug FROM blog_posts WHERE id != $1 AND status = 'published' AND is_published = true ORDER BY created_at DESC`,
         [postId]
     );
 
