@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atasa Blog Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; }
+    .tab-active { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+    .page-active { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .animate-spin { animation: spin 1s linear infinite; }
+    .status-badge { position: absolute; top: 8px; right: 8px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+    .toggle-active { background: #10b981; }
+    .toggle-active span { transform: translateX(24px); }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+  
+  <!-- Login Screen -->
+  <div id="loginScreen" class="min-h-screen flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md text-center">
+      <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-white text-2xl">📝</div>
+      <h1 class="text-2xl font-bold mb-2">Atasa Blog Admin</h1>
+      <p class="text-slate-500 mb-6">Devam etmek için giriş yapın</p>
+      <div class="space-y-3 text-left">
+        <input type="email" id="loginEmail" placeholder="Email" class="w-full px-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="password" id="loginPassword" placeholder="Şifre" class="w-full px-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onkeydown="if(event.key==='Enter') window.app.handleLogin()">
+        <button id="loginBtn" onclick="window.app.handleLogin()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors">Giriş Yap</button>
+      </div>
+      <p id="loginError" class="mt-4 text-red-500 text-sm hidden"></p>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="mainApp" class="hidden">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <h1 class="text-xl font-bold">📝 Atasa Blog Admin</h1>
+        <div class="flex gap-1 bg-slate-100 p-1 rounded-xl">
+          <button onclick="app.switchPage('posts')" id="page-posts" class="px-4 py-2 rounded-lg text-sm font-medium page-active">Yazılar</button>
+          <button onclick="app.switchPage('youtube')" id="page-youtube" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white">YouTube</button>
+          <button onclick="app.switchPage('shorts')" id="page-shorts" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white">Shorts</button>
+          <button onclick="app.switchPage('settings')" id="page-settings" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white">Ayarlar</button>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">Otopilot</span>
+            <button id="autopilotToggle" onclick="app.toggleAutopilot()" class="w-12 h-6 rounded-full bg-slate-300 relative cursor-pointer">
+              <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+            </button>
+          </div>
+          <span id="userEmail" class="text-sm text-slate-600"></span>
+          <button onclick="app.logout()" class="text-sm text-slate-500 hover:text-red-600">Çıkış</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Posts Page -->
+    <main id="postsPage" class="max-w-7xl mx-auto px-4 py-8">
+      <div class="grid grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-xl p-4 border"><p class="text-2xl font-bold" id="draftCount">-</p><p class="text-xs text-slate-500">Taslak</p></div>
+        <div class="bg-white rounded-xl p-4 border"><p class="text-2xl font-bold" id="publishedCount">-</p><p class="text-xs text-slate-500">Yayında</p></div>
+        <div class="bg-white rounded-xl p-4 border"><p class="text-2xl font-bold" id="scheduledCount">-</p><p class="text-xs text-slate-500">Zamanlanmış</p></div>
+        <div class="bg-white rounded-xl p-4 border"><p class="text-2xl font-bold" id="totalCount">-</p><p class="text-xs text-slate-500">Toplam</p></div>
+      </div>
+      <div class="flex gap-2 mb-6">
+        <button onclick="app.setFilter('all')" id="tab-all" class="px-4 py-2 rounded-lg text-sm border-2 tab-active">Tümü</button>
+        <button onclick="app.setFilter('draft')" id="tab-draft" class="px-4 py-2 rounded-lg text-sm border-2 border-transparent">Taslaklar</button>
+        <button onclick="app.setFilter('published')" id="tab-published" class="px-4 py-2 rounded-lg text-sm border-2 border-transparent">Yayında</button>
+        <button onclick="app.setFilter('scheduled')" id="tab-scheduled" class="px-4 py-2 rounded-lg text-sm border-2 border-transparent">Zamanlanmış</button>
+      </div>
+      <div class="bg-white rounded-xl border"><div id="postsList" class="divide-y"></div></div>
+    </main>
+
+    <!-- YouTube Page -->
+    <main id="youtubePage" class="max-w-7xl mx-auto px-4 py-8 hidden">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">🎬 YouTube Videoları</h2>
+        <div class="flex gap-2 items-center">
+          <button onclick="app.transcribeAll('video')" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700">🎙️ Tümünü Deşifre Et</button>
+          <button onclick="app.loadMoreVideos('video')" class="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm hover:bg-slate-700">📥 Daha Fazla</button>
+          <div class="flex items-center gap-1 bg-red-600 rounded-lg">
+            <button onclick="app.fetchAndSaveVideos('video', 10)" class="px-3 py-2 text-white text-sm hover:bg-red-700 rounded-l-lg border-r border-red-500">🔄 10</button>
+            <button onclick="app.fetchAndSaveVideos('video', 20)" class="px-3 py-2 text-white text-sm hover:bg-red-700 border-r border-red-500">20</button>
+            <button onclick="app.fetchAndSaveVideos('video', 50)" class="px-3 py-2 text-white text-sm hover:bg-red-700 rounded-r-lg">50</button>
+          </div>
+        </div>
+      </div>
+      <div id="youtubeVideosList" class="grid grid-cols-3 gap-6"></div>
+    </main>
+
+    <!-- Shorts Page -->
+    <main id="shortsPage" class="max-w-7xl mx-auto px-4 py-8 hidden">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">📱 Shorts</h2>
+        <div class="flex gap-2 items-center">
+          <button onclick="app.reclassifyAllVideos()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm hover:bg-amber-700" title="Veritabanındaki tüm videoları süreye göre yeniden sınıflandır (≤60s = Short)">♻️ Sınıflandır</button>
+          <button onclick="app.transcribeAll('short')" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700">🎙️ Tümünü Deşifre Et</button>
+          <button onclick="app.loadMoreVideos('short')" class="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm hover:bg-slate-700">📥 Daha Fazla</button>
+          <div class="flex items-center gap-1 bg-pink-600 rounded-lg">
+            <button onclick="app.fetchAndSaveVideos('short', 10)" class="px-3 py-2 text-white text-sm hover:bg-pink-700 rounded-l-lg border-r border-pink-500">🔄 10</button>
+            <button onclick="app.fetchAndSaveVideos('short', 20)" class="px-3 py-2 text-white text-sm hover:bg-pink-700 border-r border-pink-500">20</button>
+            <button onclick="app.fetchAndSaveVideos('short', 50)" class="px-3 py-2 text-white text-sm hover:bg-pink-700 rounded-r-lg">50</button>
+          </div>
+        </div>
+      </div>
+      <div id="shortsVideosList" class="grid grid-cols-4 gap-4"></div>
+    </main>
+
+    <!-- Settings Page -->
+    <main id="settingsPage" class="max-w-2xl mx-auto px-4 py-8 hidden">
+      <h2 class="text-2xl font-bold mb-6">⚙️ Ayarlar</h2>
+      <div class="space-y-4">
+        
+        <!-- AUTOMATION SECTION -->
+        <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl p-4 text-white">
+          <h3 class="font-bold text-lg mb-1">🤖 Otomasyon</h3>
+          <p class="text-sm opacity-90">Yeni videolar otomatik olarak işlensin</p>
+        </div>
+        
+        <!-- Auto Scan Toggle -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium">📡 Otomatik Video Tarama</label>
+              <p class="text-xs text-slate-500 mt-1">YouTube kanalını belirli aralıklarla tarar ve yeni videoları bulur</p>
+            </div>
+            <button id="autoScanToggle" onclick="app.toggleAutoScan()" class="w-12 h-6 rounded-full bg-slate-300 relative cursor-pointer flex-shrink-0 ml-4 transition-colors">
+              <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+            </button>
+          </div>
+          <div id="autoScanOptions" class="mt-3 pt-3 border-t hidden">
+            <div class="flex items-center gap-2">
+              <label class="text-sm">Tarama Aralığı:</label>
+              <select id="scanInterval" class="px-3 py-1.5 border rounded-lg text-sm">
+                <option value="1">Her 1 saat</option>
+                <option value="3">Her 3 saat</option>
+                <option value="6" selected>Her 6 saat</option>
+                <option value="12">Her 12 saat</option>
+                <option value="24">Günde 1 kez</option>
+              </select>
+            </div>
+            <p id="lastScanTime" class="text-xs text-slate-500 mt-2"></p>
+          </div>
+        </div>
+        
+        <!-- Auto Transcribe Toggle -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium">🎙️ Otomatik Deşifre</label>
+              <p class="text-xs text-slate-500 mt-1">Yeni bulunan videolar otomatik olarak deşifre edilir</p>
+            </div>
+            <button id="autoTranscribeToggle" onclick="app.toggleAutoTranscribe()" class="w-12 h-6 rounded-full bg-slate-300 relative cursor-pointer flex-shrink-0 ml-4 transition-colors">
+              <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Auto Blog Toggle -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium">📝 Otomatik Blog Oluştur</label>
+              <p class="text-xs text-slate-500 mt-1">Deşifre tamamlanınca AI blog yazısı oluşturur</p>
+            </div>
+            <button id="autoBlogToggle" onclick="app.toggleAutoBlog()" class="w-12 h-6 rounded-full bg-slate-300 relative cursor-pointer flex-shrink-0 ml-4 transition-colors">
+              <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Auto Publish Toggle -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium">🚀 Otomatik Yayınla</label>
+              <p class="text-xs text-slate-500 mt-1">Blog yazıları otomatik yayınlanır (kapalıysa taslak olarak kaydedilir)</p>
+            </div>
+            <button id="autoPublishToggle" onclick="app.toggleAutoPublish()" class="w-12 h-6 rounded-full bg-slate-300 relative cursor-pointer flex-shrink-0 ml-4 transition-colors">
+              <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Manual Scan Button -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium">🔍 Manuel Tarama</label>
+              <p class="text-xs text-slate-500 mt-1">Şimdi YouTube kanalını tara ve yeni videoları bul</p>
+            </div>
+            <button onclick="app.manualScan()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700 flex-shrink-0 ml-4">
+              ▶️ Şimdi Tara
+            </button>
+          </div>
+        </div>
+        
+        <!-- DIVIDER -->
+        <div class="border-t my-6"></div>
+        
+        <!-- Transcription Provider -->
+        <div class="bg-white rounded-xl p-4 border">
+          <label class="block text-sm font-medium mb-2">🎙️ Transkripsiyon Sağlayıcısı</label>
+          <select id="transcriptionProvider" onchange="app.onProviderChange()" class="w-full px-3 py-2 border rounded-lg text-sm">
+            <option value="openai">OpenAI Whisper (Önerilen)</option>
+            <option value="assemblyai">AssemblyAI</option>
+          </select>
+          <p class="text-xs text-slate-500 mt-2">OpenAI Whisper daha hızlı ve doğru sonuçlar verir.</p>
+        </div>
+        
+        <!-- YouTube API Key -->
+        <div class="bg-white rounded-xl p-4 border">
+          <label class="block text-sm font-medium mb-2">🔴 YouTube API Key</label>
+          <input type="password" id="youtubeApiKey" class="w-full px-3 py-2 border rounded-lg font-mono text-sm" placeholder="AIza...">
+        </div>
+        
+        <!-- OpenAI API Key -->
+        <div id="openaiKeySection" class="bg-white rounded-xl p-4 border transition-all">
+          <label class="block text-sm font-medium mb-2">🤖 OpenAI API Key</label>
+          <input type="password" id="openaiApiKey" class="w-full px-3 py-2 border rounded-lg font-mono text-sm" placeholder="sk-...">
+          <p class="text-xs text-slate-500 mt-2">Hem transkripsiyon (Whisper) hem blog oluşturma için kullanılır.</p>
+        </div>
+        
+        <!-- AssemblyAI API Key -->
+        <div id="assemblyaiKeySection" class="bg-white rounded-xl p-4 border hidden transition-all">
+          <label class="block text-sm font-medium mb-2">🔊 AssemblyAI API Key</label>
+          <input type="password" id="assemblyaiApiKey" class="w-full px-3 py-2 border rounded-lg font-mono text-sm" placeholder="...">
+          <p class="text-xs text-slate-500 mt-2">Sadece transkripsiyon için kullanılır.</p>
+        </div>
+        
+        <!-- YouTube Channel ID -->
+        <div class="bg-white rounded-xl p-4 border">
+          <label class="block text-sm font-medium mb-2">📺 YouTube Kanal ID</label>
+          <input type="text" id="youtubeChannelId" class="w-full px-3 py-2 border rounded-lg font-mono text-sm" placeholder="UC...">
+          <p class="text-xs text-slate-500 mt-2">Boş bırakılırsa @atasa_tr kanalı kullanılır.</p>
+        </div>
+        
+        <!-- AI Title Generation Toggle -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium">🎯 Başlığı AI Oluştursun</label>
+              <p class="text-xs text-slate-500 mt-1">Açıkken AI, SEO kurallarına göre optimize edilmiş başlık oluşturur. Kapalıyken video başlığı kullanılır.</p>
+            </div>
+            <button id="aiTitleToggle" onclick="app.toggleAiTitle()" class="w-12 h-6 rounded-full bg-slate-300 relative cursor-pointer flex-shrink-0 ml-4">
+              <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+            </button>
+          </div>
+          <div id="aiTitleInfo" class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg hidden">
+            <p class="text-xs text-amber-700">⚡ AI başlık oluşturma aktif! Başlıklar, AI SEO Kuralları dikkate alınarak Google ve AI arama platformlarında üst sıralarda çıkacak şekilde optimize edilecek.</p>
+          </div>
+        </div>
+        
+        <!-- Blog Prompt -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-sm font-medium">✍️ Blog Yazısı Oluşturma Promptu</label>
+            <button onclick="app.resetBlogPrompt()" class="text-xs text-blue-600 hover:underline">Varsayılana Dön</button>
+          </div>
+          <textarea id="blogPrompt" rows="4" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="Blog yazısı oluşturma promptunu girin..."></textarea>
+          <p class="text-xs text-slate-500 mt-2">AI'ın blog yazısını nasıl oluşturacağını belirler. {video_title} ve {transcript} değişkenlerini kullanabilirsiniz.</p>
+        </div>
+        
+        <!-- AI SEO Rules -->
+        <div class="bg-white rounded-xl p-4 border">
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-sm font-medium">🎯 AI SEO Kuralları</label>
+            <button onclick="app.resetSeoRules()" class="text-xs text-blue-600 hover:underline">Varsayılana Dön</button>
+          </div>
+          <textarea id="aiSeoRules" rows="6" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="AI SEO kurallarını girin..."></textarea>
+          <p class="text-xs text-slate-500 mt-2">Google, ChatGPT, Perplexity ve AI Overview'da üst sıralarda çıkmak için SEO kuralları. Bu kurallar blog promptuyla birleştirilir.</p>
+        </div>
+        
+        <button onclick="app.saveSettings()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors">💾 Kaydet</button>
+        
+        <!-- Allowed Users -->
+        <div class="bg-white rounded-xl p-4 border mt-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-semibold">👥 İzinli Kullanıcılar</h3>
+            <button onclick="app.openAddUserModal()" class="px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">+ Ekle</button>
+          </div>
+          <div id="allowedUsersList" class="space-y-2"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Edit Post Modal -->
+  <div id="editModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div class="p-4 border-b flex justify-between"><h3 class="font-semibold">Düzenle</h3><button onclick="app.closeModal('edit')">✕</button></div>
+      <div class="p-4 overflow-y-auto flex-1 space-y-3">
+        <input type="hidden" id="editId">
+        <input type="text" id="editTitle" placeholder="Başlık" class="w-full px-3 py-2 border rounded-lg">
+        <input type="text" id="editCategory" placeholder="Kategori" class="w-full px-3 py-2 border rounded-lg">
+        <textarea id="editExcerpt" rows="2" placeholder="Özet" class="w-full px-3 py-2 border rounded-lg"></textarea>
+        <textarea id="editContent" rows="10" placeholder="İçerik" class="w-full px-3 py-2 border rounded-lg font-mono text-sm"></textarea>
+        <input type="url" id="editThumbnail" placeholder="Görsel URL" class="w-full px-3 py-2 border rounded-lg">
+      </div>
+      <div class="p-4 border-t flex justify-end gap-2">
+        <button onclick="app.closeModal('edit')" class="px-4 py-2 text-slate-600">İptal</button>
+        <button onclick="app.savePost()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Modal -->
+  <div id="videoModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div class="p-4 border-b flex justify-between"><h3 class="font-semibold">🎬 Video → Blog</h3><button onclick="app.closeModal('video')">✕</button></div>
+      <div class="p-4 overflow-y-auto flex-1">
+        <div class="flex gap-4 mb-4">
+          <img id="modalThumb" class="w-40 h-24 object-cover rounded-lg">
+          <div>
+            <h4 id="modalTitle" class="font-semibold"></h4>
+            <p id="modalDate" class="text-sm text-slate-500"></p>
+            <div id="modalStatusBadges" class="flex flex-wrap gap-2 mt-2"></div>
+          </div>
+        </div>
+        <div class="mb-4">
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-sm font-medium">Transkript</label>
+            <button onclick="app.startBackgroundTranscription()" id="transcribeBtn" class="px-3 py-1 bg-purple-600 text-white rounded text-sm">🎙️ Deşifre Et</button>
+          </div>
+          <textarea id="videoTranscript" rows="6" class="w-full px-3 py-2 border rounded-lg font-mono text-sm" placeholder="Transkript buraya gelecek..."></textarea>
+          <p id="transcriptStatus" class="text-xs mt-1"></p>
+        </div>
+        <button onclick="app.generateBlog()" id="generateBlogBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm mb-4 hover:bg-green-700">🤖 Blog Yazısı Oluştur</button>
+        <div id="blogPreview" class="hidden space-y-3">
+          <input type="text" id="blogTitle" placeholder="Blog Başlığı" class="w-full px-3 py-2 border rounded-lg font-semibold">
+          <textarea id="blogContent" rows="8" class="w-full px-3 py-2 border rounded-lg font-mono text-sm"></textarea>
+        </div>
+      </div>
+      <div class="p-4 border-t flex justify-end gap-2">
+        <button onclick="app.closeModal('video')" class="px-4 py-2 text-slate-600">İptal</button>
+        <button onclick="app.saveBlog('draft')" id="saveDraftBtn" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hidden">Taslak</button>
+        <button onclick="app.saveBlog('published')" id="publishBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hidden">Yayınla</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div id="addUserModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl w-full max-w-md p-6">
+      <h3 class="font-semibold mb-4">Kullanıcı Ekle</h3>
+      <input type="email" id="newUserEmail" placeholder="Email" class="w-full px-3 py-2 border rounded-lg mb-3">
+      <input type="text" id="newUserName" placeholder="İsim (opsiyonel)" class="w-full px-3 py-2 border rounded-lg mb-4">
+      <div class="flex justify-end gap-2">
+        <button onclick="app.closeModal('addUser')" class="px-4 py-2 text-slate-600">İptal</button>
+        <button onclick="app.addUser()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg">Ekle</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-6 py-3 rounded-xl translate-y-20 opacity-0 transition-all z-50"></div>
+  
+  <!-- Loading -->
+  <div id="loading" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-8 text-center">
+      <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p id="loadingText">Yükleniyor...</p>
+    </div>
+  </div>
+
+  <!-- Load Modular JS -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
