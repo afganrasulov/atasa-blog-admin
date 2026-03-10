@@ -1,21 +1,23 @@
 import pg from 'pg';
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+dotenv.config();
 
 const { Pool } = pg;
 
 export const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    options: '-c search_path=atasa_mobi,public'
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+  options: '-c search_path=atasa_mobi,public'
 });
 
 export async function initDB() {
-    try {
-        await pool.query(`CREATE TABLE IF NOT EXISTS settings (key VARCHAR(100) PRIMARY KEY, value TEXT)`);
-        await pool.query(`CREATE TABLE IF NOT EXISTS youtube_videos (id VARCHAR(50) PRIMARY KEY, title VARCHAR(500), description TEXT, thumbnail VARCHAR(500), duration INTEGER, view_count INTEGER, published_at TIMESTAMP, channel_id VARCHAR(50), video_type VARCHAR(20) DEFAULT 'video', audio_url TEXT, audio_status VARCHAR(20) DEFAULT 'pending', transcript TEXT, transcript_status VARCHAR(20) DEFAULT 'pending', transcript_job_id VARCHAR(100), transcript_model VARCHAR(50), transcript_updated_at TIMESTAMP, blog_created BOOLEAN DEFAULT FALSE, blog_post_id INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
-        await pool.query(`CREATE TABLE IF NOT EXISTS allowed_users (id SERIAL PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL, name VARCHAR(255), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+  try {
+    await pool.query(`CREATE TABLE IF NOT EXISTS settings (key VARCHAR(100) PRIMARY KEY, value TEXT)`);
+    await pool.query(`CREATE TABLE IF NOT EXISTS youtube_videos (id VARCHAR(50) PRIMARY KEY, title VARCHAR(500), description TEXT, thumbnail VARCHAR(500), duration INTEGER, view_count INTEGER, published_at TIMESTAMP, channel_id VARCHAR(50), video_type VARCHAR(20) DEFAULT 'video', audio_url TEXT, audio_status VARCHAR(20) DEFAULT 'pending', transcript TEXT, transcript_status VARCHAR(20) DEFAULT 'pending', transcript_job_id VARCHAR(100), transcript_model VARCHAR(50), transcript_updated_at TIMESTAMP, blog_created BOOLEAN DEFAULT FALSE, blog_post_id INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+    await pool.query(`CREATE TABLE IF NOT EXISTS allowed_users (id SERIAL PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL, name VARCHAR(255), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
 
-        await pool.query(`CREATE TABLE IF NOT EXISTS carousel_posts (
+    await pool.query(`CREATE TABLE IF NOT EXISTS carousel_posts (
       id SERIAL PRIMARY KEY,
       tenant_id INTEGER,
       title VARCHAR(500) NOT NULL,
@@ -34,7 +36,7 @@ export async function initDB() {
       published_at TIMESTAMP
     )`);
 
-        await pool.query(`CREATE TABLE IF NOT EXISTS news_items (
+    await pool.query(`CREATE TABLE IF NOT EXISTS news_items (
       id SERIAL PRIMARY KEY,
       category VARCHAR(100) NOT NULL,
       title VARCHAR(500) NOT NULL,
@@ -48,7 +50,7 @@ export async function initDB() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
 
-        await pool.query(`CREATE TABLE IF NOT EXISTS ig_tenants (
+    await pool.query(`CREATE TABLE IF NOT EXISTS ig_tenants (
       id SERIAL PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
       slug VARCHAR(100) UNIQUE NOT NULL,
@@ -74,7 +76,7 @@ export async function initDB() {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
 
-        await pool.query(`CREATE TABLE IF NOT EXISTS ig_tenant_users (
+    await pool.query(`CREATE TABLE IF NOT EXISTS ig_tenant_users (
       id SERIAL PRIMARY KEY,
       tenant_id INTEGER REFERENCES ig_tenants(id) ON DELETE CASCADE,
       email VARCHAR(255) NOT NULL,
@@ -84,7 +86,7 @@ export async function initDB() {
       UNIQUE(tenant_id, email)
     )`);
 
-        await pool.query(`CREATE TABLE IF NOT EXISTS ig_templates (
+    await pool.query(`CREATE TABLE IF NOT EXISTS ig_templates (
       id SERIAL PRIMARY KEY,
       name VARCHAR(100) NOT NULL,
       description TEXT,
@@ -100,7 +102,7 @@ export async function initDB() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
 
-        await pool.query(`CREATE TABLE IF NOT EXISTS ig_scheduled_posts (
+    await pool.query(`CREATE TABLE IF NOT EXISTS ig_scheduled_posts (
       id SERIAL PRIMARY KEY,
       tenant_id INTEGER REFERENCES ig_tenants(id) ON DELETE CASCADE,
       carousel_id INTEGER REFERENCES carousel_posts(id) ON DELETE CASCADE,
@@ -112,32 +114,32 @@ export async function initDB() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
 
-        // Add columns if not exist
-        await pool.query(`ALTER TABLE youtube_videos ADD COLUMN IF NOT EXISTS audio_url TEXT`);
-        await pool.query(`ALTER TABLE youtube_videos ADD COLUMN IF NOT EXISTS audio_status VARCHAR(20) DEFAULT 'pending'`);
-        await pool.query(`ALTER TABLE youtube_videos ADD COLUMN IF NOT EXISTS transcript_job_id VARCHAR(100)`);
-        await pool.query(`ALTER TABLE youtube_videos ADD COLUMN IF NOT EXISTS blog_created BOOLEAN DEFAULT FALSE`);
-        await pool.query(`ALTER TABLE youtube_videos ADD COLUMN IF NOT EXISTS blog_post_id INTEGER`);
-        await pool.query(`ALTER TABLE carousel_posts ADD COLUMN IF NOT EXISTS tenant_id INTEGER`);
-        await pool.query(`ALTER TABLE carousel_posts ADD COLUMN IF NOT EXISTS ig_media_id VARCHAR(50)`);
-        await pool.query(`ALTER TABLE carousel_posts ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMP`);
-        await pool.query(`ALTER TABLE carousel_posts ADD COLUMN IF NOT EXISTS caption TEXT`);
+    // Add columns if not exist
+    await pool.query(`ALTER TABLE youtube_videos ADD COLUMN IF NOT EXISTS audio_url TEXT`);
+    await pool.query(`ALTER TABLE youtube_videos ADD COLUMN IF NOT EXISTS audio_status VARCHAR(20) DEFAULT 'pending'`);
+    await pool.query(`ALTER TABLE youtube_videos ADD COLUMN IF NOT EXISTS transcript_job_id VARCHAR(100)`);
+    await pool.query(`ALTER TABLE youtube_videos ADD COLUMN IF NOT EXISTS blog_created BOOLEAN DEFAULT FALSE`);
+    await pool.query(`ALTER TABLE youtube_videos ADD COLUMN IF NOT EXISTS blog_post_id INTEGER`);
+    await pool.query(`ALTER TABLE carousel_posts ADD COLUMN IF NOT EXISTS tenant_id INTEGER`);
+    await pool.query(`ALTER TABLE carousel_posts ADD COLUMN IF NOT EXISTS ig_media_id VARCHAR(50)`);
+    await pool.query(`ALTER TABLE carousel_posts ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMP`);
+    await pool.query(`ALTER TABLE carousel_posts ADD COLUMN IF NOT EXISTS caption TEXT`);
 
-        // Default settings
-        const defaults = [
-            ['autopilot', 'false'], ['transcription_provider', 'openai'],
-            ['auto_scan_enabled', 'false'], ['auto_transcribe', 'false'],
-            ['auto_blog', 'false'], ['auto_publish', 'false'],
-            ['scan_interval_hours', '6'], ['last_scan_time', '']
-        ];
-        for (const [key, value] of defaults) {
-            await pool.query(`INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING`, [key, value]);
-        }
+    // Default settings
+    const defaults = [
+      ['autopilot', 'false'], ['transcription_provider', 'openai'],
+      ['auto_scan_enabled', 'false'], ['auto_transcribe', 'false'],
+      ['auto_blog', 'false'], ['auto_publish', 'false'],
+      ['scan_interval_hours', '6'], ['last_scan_time', '']
+    ];
+    for (const [key, value] of defaults) {
+      await pool.query(`INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING`, [key, value]);
+    }
 
-        await pool.query(`INSERT INTO allowed_users (email, name) VALUES ('afganrasulov@gmail.com', 'Afgan Rasulov') ON CONFLICT (email) DO NOTHING`);
-        await pool.query(`INSERT INTO ig_templates (name, description, is_public) VALUES ('Classic White', 'Temiz, minimalist beyaz tasarım', TRUE) ON CONFLICT DO NOTHING`);
-        await pool.query(`INSERT INTO ig_tenants (name, slug, email, brand_name, default_hashtags, plan, monthly_post_limit) VALUES ('Atasa Danışmanlık', 'atasa', 'info@atasadanismanlik.com', 'ATASA', '#göçmenlik #türkiye #oturmaiizni #çalışmaizni #vize #vatandaşlık', 'pro', 20) ON CONFLICT (slug) DO NOTHING`);
+    await pool.query(`INSERT INTO allowed_users (email, name) VALUES ('afganrasulov@gmail.com', 'Afgan Rasulov') ON CONFLICT (email) DO NOTHING`);
+    await pool.query(`INSERT INTO ig_templates (name, description, is_public) VALUES ('Classic White', 'Temiz, minimalist beyaz tasarım', TRUE) ON CONFLICT DO NOTHING`);
+    await pool.query(`INSERT INTO ig_tenants (name, slug, email, brand_name, default_hashtags, plan, monthly_post_limit) VALUES ('Atasa Danışmanlık', 'atasa', 'info@atasadanismanlik.com', 'ATASA', '#göçmenlik #türkiye #oturmaiizni #çalışmaizni #vize #vatandaşlık', 'pro', 20) ON CONFLICT (slug) DO NOTHING`);
 
-        console.log('✅ Database initialized');
-    } catch (error) { console.error('Database init error:', error); }
+    console.log('✅ Database initialized');
+  } catch (error) { console.error('Database init error:', error); }
 }

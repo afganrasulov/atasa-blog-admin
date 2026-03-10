@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+dotenv.config(); // fallback to .env
 import { pool, initDB } from './src/shared/database.js';
 
 // Feature routes
