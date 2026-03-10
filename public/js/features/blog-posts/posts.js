@@ -52,12 +52,12 @@ function renderPosts(filter = 'all') {
 }
 
 export async function publishPost(id) {
-  await fetch(`${API}/api/posts/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'published' }) });
+  await fetch(`${API}/api/posts/${id}/publish`, { method: 'PUT' });
   loadPosts(); toast('Yayınlandı! 🚀');
 }
 
 export async function unpublishPost(id) {
-  await fetch(`${API}/api/posts/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'draft' }) });
+  await fetch(`${API}/api/posts/${id}/unpublish`, { method: 'PUT' });
   loadPosts(); toast('Taslağa alındı');
 }
 
@@ -68,7 +68,7 @@ export async function deletePost(id) {
 }
 
 export async function editPost(id) {
-  const post = state.posts.find(p => p.id === id);
+  const post = state.posts.find(p => p.id == id);
   if (!post) return;
   document.getElementById('editPostId').value = post.id;
   document.getElementById('editPostTitle').value = post.title;
