@@ -106,9 +106,9 @@ export async function resolveInternalLinks(content, currentPostId = null) {
         }
 
         if (bestMatch && bestScore >= 2) {
-            // Replace with real HTML link
-            const link = `<a href="${SITE_URL}/blog/${bestMatch.slug}" title="${bestMatch.title}">${bestMatch.title}</a>`;
-            result = result.replace(fullMatch, `👉 İlgili yazı: ${link}`);
+            // Replace with Markdown link (blog content uses Markdown rendering)
+            const link = `[${bestMatch.title}](${SITE_URL}/blog/${bestMatch.slug})`;
+            result = result.replace(fullMatch, `\n\n👉 **İlgili yazı:** ${link}\n`);
         } else {
             // No good match found — just remove the placeholder
             result = result.replace(fullMatch, '');
