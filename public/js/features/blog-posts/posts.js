@@ -41,10 +41,10 @@ function renderPosts(filter = 'all') {
           </div>
         </div>
         <div class="flex gap-1">
-          ${p.status === 'draft' ? `<button onclick="app.publishPost(${p.id})" class="text-sm px-2 py-1 bg-green-50 text-green-600 rounded hover:bg-green-100">Yayınla</button>` : ''}
-          ${p.status === 'published' ? `<button onclick="app.unpublishPost(${p.id})" class="text-sm px-2 py-1 bg-yellow-50 text-yellow-600 rounded hover:bg-yellow-100">Geri Al</button>` : ''}
-          <button onclick="app.editPost(${p.id})" class="text-sm px-2 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100">✏️</button>
-          <button onclick="app.deletePost(${p.id})" class="text-sm px-2 py-1 bg-red-50 text-red-600 rounded hover:bg-red-100">🗑️</button>
+          ${p.status === 'draft' ? `<button onclick="app.publishPost('${p.id}')" class="text-sm px-2 py-1 bg-green-50 text-green-600 rounded hover:bg-green-100">Yayınla</button>` : ''}
+          ${p.status === 'published' ? `<button onclick="app.unpublishPost('${p.id}')" class="text-sm px-2 py-1 bg-yellow-50 text-yellow-600 rounded hover:bg-yellow-100">Geri Al</button>` : ''}
+          <button onclick="app.editPost('${p.id}')" class="text-sm px-2 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100">✏️</button>
+          <button onclick="app.deletePost('${p.id}')" class="text-sm px-2 py-1 bg-red-50 text-red-600 rounded hover:bg-red-100">🗑️</button>
         </div>
       </div>
     </div>
