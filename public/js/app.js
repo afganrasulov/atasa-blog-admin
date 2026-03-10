@@ -4,7 +4,7 @@ import { addUser, removeUser } from './features/auth/users.js';
 import { loadPosts, setFilter, publishPost, unpublishPost, deletePost, editPost, savePost } from './features/blog-posts/posts.js';
 import { loadVideos, openVideoModal, reclassifyAllVideos } from './features/youtube/videos.js';
 import { fetchAndSaveVideos, loadMoreVideos } from './features/youtube/fetch.js';
-import { toggleVideoSelection, toggleSelectAll, clearSelection, setVideoFilter, bulkTranscribe, bulkGenerateBlog } from './features/youtube/selection.js';
+import { toggleVideoSelection, toggleSelectAll, clearSelection, setVideoFilter, bulkTranscribe, bulkGenerateBlog, retryFailedTranscriptions } from './features/youtube/selection.js';
 import { transcribeAll, startBackgroundTranscription } from './features/transcription/transcribe.js';
 import { generateBlog, saveBlog } from './features/transcription/blog-generator.js';
 import { saveSettings, onProviderChange, resetBlogPrompt, resetSeoRules, toggleAiTitle } from './features/settings/settings.js';
@@ -46,6 +46,7 @@ window.app = {
   saveBlog,
   bulkTranscribe,
   bulkGenerateBlog,
+  retryFailedTranscriptions,
 
   // Settings
   saveSettings,

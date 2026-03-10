@@ -4,6 +4,31 @@ import { toast, showLoading, hideLoading, switchPage } from '../../shared/utils.
 import { loadVideos, renderVideos } from './videos.js';
 import { getBlogSystemPrompt } from '../settings/settings.js';
 
+// Retry all failed transcriptions for a given type
+export async function retryFailedTranscriptions(type) {
+    const failedVideos = state.cachedVideos[type].filter(v => v.transcript_status === 'failed');
+    if (failedVideos.length === 0) { toast('Hatalı video bulunamadı'); return; }
+    const config = getTranscriptionConfig();
+    if (!config) return;
+    const ids = failedVideos.map(v => v.id);
+    showLoading(`${ids.length} hatalı video yeniden deneniyor...`);
+    try {
+        // Reset failed statuses first
+        await fetch(`${API}/api/youtube/videos/reset-failed`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ videoIds: ids })
+        });
+        // Trigger bulk transcription
+        await fetch(`${API}/api/youtube/videos/bulk-transcribe`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ videoIds: ids, apiKey: config.apiKey, provider: config.provider })
+        });
+        hideLoading();
+        await loadVideos();
+        toast(`${ids.length} video için deşifre yeniden başlatıldı ✓`);
+    } catch (e) { hideLoading(); toast('Hata: ' + e.message); }
+}
+
 // Selected videos for bulk operations
 export const selectedVideos = {
     video: new Set(),
