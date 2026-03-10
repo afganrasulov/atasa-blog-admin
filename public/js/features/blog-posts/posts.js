@@ -90,3 +90,38 @@ export async function savePost() {
   });
   closeModal('edit'); loadPosts(); toast('Güncellendi ✓');
 }
+
+export async function buildAllInternalLinks() {
+  if (!confirm('Tüm blog yazılarına AI ile iç bağlantılar kurulsun mu?\nBu işlem birkaç dakika sürebilir.')) return;
+
+  const btn = document.getElementById('btnBuildLinks');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ İşleniyor...';
+  btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+  toast('🔗 AI iç bağlantı kurma başladı...');
+
+  try {
+    const res = await fetch(`${API}/api/posts/build-all-internal-links`, { method: 'POST' });
+    const data = await res.json();
+
+    if (data.success) {
+      toast(`✅ ${data.updated}/${data.total} yazıya toplam ${data.totalLinks} iç bağlantı eklendi!`);
+      if (data.errors?.length > 0) {
+        console.warn('İç bağlantı hataları:', data.errors);
+        toast(`⚠️ ${data.errors.length} yazıda hata oluştu`);
+      }
+      loadPosts();
+    } else {
+      toast('❌ İç bağlantı kurulurken hata oluştu');
+    }
+  } catch (e) {
+    console.error(e);
+    toast('❌ İç bağlantı kurulurken hata: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+  }
+}

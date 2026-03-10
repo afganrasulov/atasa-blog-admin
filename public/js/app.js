@@ -1,7 +1,7 @@
 // app.js - Main Application Entry Point (FDD Structure)
 import { initAuth, handleLogin, logout } from './features/auth/login.js';
 import { addUser, removeUser } from './features/auth/users.js';
-import { loadPosts, setFilter, publishPost, unpublishPost, deletePost, editPost, savePost } from './features/blog-posts/posts.js';
+import { loadPosts, setFilter, publishPost, unpublishPost, deletePost, editPost, savePost, buildAllInternalLinks } from './features/blog-posts/posts.js';
 import { loadVideos, openVideoModal, reclassifyAllVideos } from './features/youtube/videos.js';
 import { fetchAndSaveVideos, loadMoreVideos } from './features/youtube/fetch.js';
 import { toggleVideoSelection, toggleSelectAll, clearSelection, setVideoFilter, bulkTranscribe, bulkGenerateBlog, retryFailedTranscriptions } from './features/youtube/selection.js';
@@ -27,6 +27,7 @@ window.app = {
   deletePost,
   editPost,
   savePost,
+  buildAllInternalLinks,
 
   // YouTube
   loadVideos,

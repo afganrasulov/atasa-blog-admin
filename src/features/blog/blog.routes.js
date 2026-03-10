@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { generateUniqueSlug, calculateReadTime, formatPost, resolveInternalLinks } from '../../shared/helpers.js';
+import { buildInternalLinks, buildAllInternalLinks } from './internal-linker.js';
 
 export function blogRoutes(pool) {
     const router = Router();
@@ -132,6 +133,22 @@ export function blogRoutes(pool) {
                 }
             }
             res.json({ success: true, fixed, total: postsResult.rows.length });
+        } catch (error) { res.status(500).json({ error: error.message }); }
+    });
+
+    // AI Internal Linking — single post
+    router.post('/:id/build-internal-links', async (req, res) => {
+        try {
+            const result = await buildInternalLinks(req.params.id);
+            res.json({ success: true, ...result });
+        } catch (error) { res.status(500).json({ error: error.message }); }
+    });
+
+    // AI Internal Linking — all posts
+    router.post('/build-all-internal-links', async (req, res) => {
+        try {
+            const results = await buildAllInternalLinks();
+            res.json({ success: true, ...results });
         } catch (error) { res.status(500).json({ error: error.message }); }
     });
 
