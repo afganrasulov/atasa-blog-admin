@@ -1,5 +1,5 @@
 // shared/config.js - Global configuration
-export const API = 'https://atasa-blog-api-production-22a4.up.railway.app';
+export const API = ''; // Unified server — same origin
 export const YT_API = 'https://www.googleapis.com/youtube/v3';
 
 // Supabase Auth
