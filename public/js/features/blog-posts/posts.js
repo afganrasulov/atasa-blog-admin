@@ -70,22 +70,22 @@ export async function deletePost(id) {
 export async function editPost(id) {
   const post = state.posts.find(p => p.id == id);
   if (!post) return;
-  document.getElementById('editPostId').value = post.id;
-  document.getElementById('editPostTitle').value = post.title;
-  document.getElementById('editPostContent').value = post.content || '';
-  document.getElementById('editPostExcerpt').value = post.excerpt || '';
+  document.getElementById('editId').value = post.id;
+  document.getElementById('editTitle').value = post.title;
+  document.getElementById('editContent').value = post.content || '';
+  document.getElementById('editExcerpt').value = post.excerpt || '';
   openModal('edit');
 }
 
 export async function savePost() {
-  const id = document.getElementById('editPostId').value;
+  const id = document.getElementById('editId').value;
   await fetch(`${API}/api/posts/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      title: document.getElementById('editPostTitle').value,
-      content: document.getElementById('editPostContent').value,
-      excerpt: document.getElementById('editPostExcerpt').value
+      title: document.getElementById('editTitle').value,
+      content: document.getElementById('editContent').value,
+      excerpt: document.getElementById('editExcerpt').value
     })
   });
   closeModal('edit'); loadPosts(); toast('Güncellendi ✓');
