@@ -35,14 +35,37 @@ async function ensureYtDlpUpdated() {
     }
 }
 
-// Fallback chain for audio extraction — 12 different strategies
+// Fallback chain for audio extraction — GitHub Actions worker first, then 12 yt-dlp strategies
 export async function extractAudio(videoId) {
     const url = `https://www.youtube.com/watch?v=${videoId}`;
     const outputPath = path.join(AUDIO_DIR, `${videoId}.mp3`);
 
     if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
 
-    // Auto-update yt-dlp if stale
+    // --- Phase 0: GitHub Actions worker (Hetzner IP'leri YouTube'da blokede, Azure GH runners açık) ---
+    if (process.env.GITHUB_DISPATCH_TOKEN) {
+        try {
+            console.log(`🎬 [0/13] GitHub Actions worker'a job veriliyor for ${videoId}...`);
+            const { downloadYouTubeAudio } = await import('./youtube-downloader.js');
+            const audioUrl = await downloadYouTubeAudio(videoId);
+
+            console.log(`📥 MinIO'dan audio indiriliyor: ${audioUrl}`);
+            const resp = await fetch(audioUrl, { signal: AbortSignal.timeout(60_000) });
+            if (!resp.ok) throw new Error(`MinIO fetch failed: HTTP ${resp.status}`);
+            const buf = Buffer.from(await resp.arrayBuffer());
+            fs.writeFileSync(outputPath, buf);
+            const size = fs.statSync(outputPath).size;
+            if (size > 1000) {
+                console.log(`✅ Audio extracted via GitHub Actions: ${(size / 1024 / 1024).toFixed(2)} MB`);
+                return { outputPath, method: 'github-actions', fileSize: size };
+            }
+            fs.unlinkSync(outputPath);
+        } catch (e) {
+            console.log(`⚠️ GitHub Actions worker failed: ${e.message?.slice(0, 200)} — yt-dlp fallback'lerine geçiliyor`);
+        }
+    }
+
+    // Auto-update yt-dlp if stale (fallback path için)
     await ensureYtDlpUpdated();
 
     // --- Phase 1: yt-dlp command-based methods ---

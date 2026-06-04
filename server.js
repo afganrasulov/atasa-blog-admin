@@ -13,6 +13,7 @@ import { blogRoutes, sitemapRoutes } from './src/features/blog/blog.routes.js';
 import { createUploadRouter } from './src/features/blog/upload.routes.js';
 import { youtubeRoutes } from './src/features/youtube/youtube.routes.js';
 import { transcriptionRoutes } from './src/features/transcription/transcription.routes.js';
+import { createYtCallbackRouter } from './src/features/transcription/yt-callback.routes.js';
 import { carouselRoutes } from './src/features/carousel/carousel.routes.js';
 import { setupCarouselRenderRoutes } from './src/features/carousel/carousel-render.js';
 import { setupInstagramRoutes } from './src/features/instagram/instagram.routes.js';
@@ -45,6 +46,7 @@ app.use('/api/youtube', youtubeRoutes(pool, getSetting));
 
 const transcriptionRouter = transcriptionRoutes(pool);
 app.use('/api/youtube', transcriptionRouter);
+app.use('/api/youtube', createYtCallbackRouter());
 
 app.use('/api/carousel', carouselRoutes(pool));
 setupCarouselRenderRoutes(app, pool);

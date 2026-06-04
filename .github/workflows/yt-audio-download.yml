@@ -1,0 +1,111 @@
+name: YouTube Audio Downloader
+
+# Triggered by blog-admin via repository_dispatch.
+# Downloads audio from YouTube on a GitHub-hosted runner (Azure IPs are not
+# YouTube-blocked unlike Hetzner DC IPs), uploads to MinIO, and notifies
+# blog-admin via callback.
+on:
+  workflow_dispatch:
+    inputs:
+      video_id:
+        description: 'YouTube video ID (e.g. dQw4w9WgXcQ)'
+        required: true
+        type: string
+      job_id:
+        description: 'blog-admin job UUID'
+        required: true
+        type: string
+      callback_url:
+        description: 'Webhook URL on blog-admin'
+        required: true
+        type: string
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Install yt-dlp + ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          pip install --upgrade --pre 'yt-dlp[default]'
+          yt-dlp --version
+
+      - name: Download audio
+        id: dl
+        run: |
+          set -e
+          mkdir -p /tmp/audio
+          VID="${{ github.event.inputs.video_id }}"
+          OUT="/tmp/audio/${VID}.mp3"
+
+          # Try multiple clients/formats — usually bestaudio works on GH runners
+          yt-dlp \
+            -f 'bestaudio[ext=m4a]/bestaudio/best' \
+            -x --audio-format mp3 --audio-quality 128K \
+            --no-progress \
+            -o "$OUT" \
+            "https://www.youtube.com/watch?v=${VID}"
+
+          ls -la "$OUT"
+          SIZE=$(stat -c%s "$OUT")
+          echo "size=$SIZE" >> "$GITHUB_OUTPUT"
+          echo "path=$OUT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload to MinIO
+        id: upload
+        env:
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+        run: |
+          set -e
+          # Install mc CLI
+          wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /usr/local/bin/mc
+          chmod +x /usr/local/bin/mc
+
+          mc alias set atasa https://cdn.atasa.mobi "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" >/dev/null
+
+          VID="${{ github.event.inputs.video_id }}"
+          KEY="audio-jobs/$(date +%Y-%m)/${VID}-$(date +%s).mp3"
+
+          mc cp --quiet "${{ steps.dl.outputs.path }}" "atasa/blog-images/$KEY"
+          AUDIO_URL="https://cdn.atasa.mobi/blog-images/${KEY}"
+
+          echo "audio_url=$AUDIO_URL" >> "$GITHUB_OUTPUT"
+          echo "key=$KEY" >> "$GITHUB_OUTPUT"
+          echo "Uploaded: $AUDIO_URL"
+
+      - name: Callback success
+        if: success()
+        env:
+          WEBHOOK_SECRET: ${{ secrets.YT_WEBHOOK_SECRET }}
+        run: |
+          BODY=$(jq -nc \
+            --arg job_id "${{ github.event.inputs.job_id }}" \
+            --arg video_id "${{ github.event.inputs.video_id }}" \
+            --arg audio_url "${{ steps.upload.outputs.audio_url }}" \
+            --arg key "${{ steps.upload.outputs.key }}" \
+            --arg size "${{ steps.dl.outputs.size }}" \
+            '{status:"done", job_id:$job_id, video_id:$video_id, audio_url:$audio_url, key:$key, size_bytes:($size|tonumber)}')
+          SIG=$(echo -n "$BODY" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" -hex | awk '{print $2}')
+          curl -fsSL -X POST "${{ github.event.inputs.callback_url }}" \
+            -H "Content-Type: application/json" \
+            -H "X-Webhook-Signature: sha256=$SIG" \
+            -d "$BODY"
+
+      - name: Callback failure
+        if: failure()
+        env:
+          WEBHOOK_SECRET: ${{ secrets.YT_WEBHOOK_SECRET }}
+        run: |
+          BODY=$(jq -nc \
+            --arg job_id "${{ github.event.inputs.job_id }}" \
+            --arg video_id "${{ github.event.inputs.video_id }}" \
+            --arg err "yt-dlp or upload failed — see GH Actions logs run ${{ github.run_id }}" \
+            '{status:"failed", job_id:$job_id, video_id:$video_id, error:$err}')
+          SIG=$(echo -n "$BODY" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" -hex | awk '{print $2}')
+          curl -fsSL -X POST "${{ github.event.inputs.callback_url }}" \
+            -H "Content-Type: application/json" \
+            -H "X-Webhook-Signature: sha256=$SIG" \
+            -d "$BODY" || true

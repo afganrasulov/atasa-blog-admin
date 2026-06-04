@@ -125,6 +125,22 @@ export async function initDB() {
     await pool.query(`ALTER TABLE carousel_posts ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMP`);
     await pool.query(`ALTER TABLE carousel_posts ADD COLUMN IF NOT EXISTS caption TEXT`);
 
+    // YouTube audio download job queue (GitHub Actions worker callback)
+    await pool.query(`CREATE TABLE IF NOT EXISTS yt_jobs (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      video_id VARCHAR(50) NOT NULL,
+      status VARCHAR(20) DEFAULT 'pending',
+      audio_url TEXT,
+      key TEXT,
+      size_bytes BIGINT,
+      error_message TEXT,
+      gh_run_id BIGINT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      completed_at TIMESTAMP
+    )`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_yt_jobs_video ON yt_jobs(video_id, status)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_yt_jobs_status ON yt_jobs(status, created_at DESC)`);
+
     // Default settings
     const defaults = [
       ['autopilot', 'false'], ['transcription_provider', 'openai'],
