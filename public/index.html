@@ -135,7 +135,10 @@
           class="px-4 py-2 rounded-lg text-sm border-2 border-transparent">Yayında</button>
         <button onclick="app.setFilter('scheduled')" id="tab-scheduled"
           class="px-4 py-2 rounded-lg text-sm border-2 border-transparent">Zamanlanmış</button>
-        <div class="ml-auto">
+        <div class="ml-auto flex gap-2">
+          <button onclick="app.newPost()" id="btnNewPost"
+            class="px-4 py-2 rounded-lg text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition">✍️ Yeni
+            Yazı</button>
           <button onclick="app.buildAllInternalLinks()" id="btnBuildLinks"
             class="px-4 py-2 rounded-lg text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition">🔗 İç Bağlantı
             Kur</button>
@@ -405,20 +408,32 @@
   <div id="editModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
       <div class="p-4 border-b flex justify-between">
-        <h3 class="font-semibold">Düzenle</h3><button onclick="app.closeModal('edit')">✕</button>
+        <h3 class="font-semibold" id="editModalTitle">Düzenle</h3><button onclick="app.closeModal('edit')">✕</button>
       </div>
       <div class="p-4 overflow-y-auto flex-1 space-y-3">
         <input type="hidden" id="editId">
         <input type="text" id="editTitle" placeholder="Başlık" class="w-full px-3 py-2 border rounded-lg">
-        <input type="text" id="editCategory" placeholder="Kategori" class="w-full px-3 py-2 border rounded-lg">
-        <textarea id="editExcerpt" rows="2" placeholder="Özet" class="w-full px-3 py-2 border rounded-lg"></textarea>
-        <textarea id="editContent" rows="10" placeholder="İçerik"
+        <div class="grid grid-cols-2 gap-3">
+          <input type="text" id="editCategory" placeholder="Kategori (ör. Genel)"
+            class="px-3 py-2 border rounded-lg">
+          <input type="text" id="editAuthor" placeholder="Yazar (ör. Adınız)"
+            class="px-3 py-2 border rounded-lg">
+        </div>
+        <textarea id="editExcerpt" rows="2" placeholder="Özet (boş bırakırsanız içerikten otomatik üretilir)"
+          class="w-full px-3 py-2 border rounded-lg"></textarea>
+        <textarea id="editContent" rows="14" placeholder="İçerik (Markdown destekli)"
           class="w-full px-3 py-2 border rounded-lg font-mono text-sm"></textarea>
-        <input type="url" id="editThumbnail" placeholder="Görsel URL" class="w-full px-3 py-2 border rounded-lg">
+        <input type="url" id="editThumbnail" placeholder="Kapak görseli URL (opsiyonel)"
+          class="w-full px-3 py-2 border rounded-lg">
+        <label class="flex items-center gap-2 text-sm">
+          <input type="checkbox" id="editPublishNow" class="w-4 h-4">
+          <span>Hemen yayınla (kapalıysa taslak olarak kaydedilir)</span>
+        </label>
       </div>
       <div class="p-4 border-t flex justify-end gap-2">
         <button onclick="app.closeModal('edit')" class="px-4 py-2 text-slate-600">İptal</button>
-        <button onclick="app.savePost()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Kaydet</button>
+        <button onclick="app.savePost()" id="btnSavePost"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg">Kaydet</button>
       </div>
     </div>
   </div>

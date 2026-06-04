@@ -67,28 +67,82 @@ export async function deletePost(id) {
   loadPosts(); toast('Silindi');
 }
 
+export function newPost() {
+  document.getElementById('editId').value = '';
+  document.getElementById('editTitle').value = '';
+  document.getElementById('editCategory').value = 'Genel';
+  document.getElementById('editAuthor').value = state.currentUser?.name || '';
+  document.getElementById('editExcerpt').value = '';
+  document.getElementById('editContent').value = '';
+  document.getElementById('editThumbnail').value = '';
+  document.getElementById('editPublishNow').checked = false;
+  document.getElementById('editModalTitle').textContent = '✍️ Yeni Yazı';
+  document.getElementById('btnSavePost').textContent = 'Kaydet';
+  openModal('edit');
+}
+
 export async function editPost(id) {
   const post = state.posts.find(p => p.id == id);
   if (!post) return;
   document.getElementById('editId').value = post.id;
   document.getElementById('editTitle').value = post.title;
+  document.getElementById('editCategory').value = post.category || 'Genel';
+  document.getElementById('editAuthor').value = post.author || '';
   document.getElementById('editContent').value = post.content || '';
   document.getElementById('editExcerpt').value = post.excerpt || '';
+  document.getElementById('editThumbnail').value = post.thumbnail || '';
+  document.getElementById('editPublishNow').checked = post.status === 'published';
+  document.getElementById('editModalTitle').textContent = 'Düzenle';
+  document.getElementById('btnSavePost').textContent = 'Kaydet';
   openModal('edit');
 }
 
 export async function savePost() {
   const id = document.getElementById('editId').value;
-  await fetch(`${API}/api/posts/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      title: document.getElementById('editTitle').value,
-      content: document.getElementById('editContent').value,
-      excerpt: document.getElementById('editExcerpt').value
-    })
-  });
-  closeModal('edit'); loadPosts(); toast('Güncellendi ✓');
+  const title = document.getElementById('editTitle').value.trim();
+  const content = document.getElementById('editContent').value.trim();
+
+  if (!title || !content) {
+    toast('Başlık ve içerik zorunlu');
+    return;
+  }
+
+  const publishNow = document.getElementById('editPublishNow').checked;
+  const body = {
+    title,
+    content,
+    category: document.getElementById('editCategory').value.trim() || 'Genel',
+    author: document.getElementById('editAuthor').value.trim() || 'Admin',
+    excerpt: document.getElementById('editExcerpt').value.trim(),
+    thumbnail: document.getElementById('editThumbnail').value.trim(),
+    status: publishNow ? 'published' : 'draft'
+  };
+
+  const btn = document.getElementById('btnSavePost');
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = 'Kaydediliyor...';
+
+  try {
+    const isNew = !id;
+    const res = await fetch(`${API}/api/posts${isNew ? '' : '/' + id}`, {
+      method: isNew ? 'POST' : 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Kayıt başarısız');
+    }
+    closeModal('edit');
+    loadPosts();
+    toast(isNew ? (publishNow ? 'Yayınlandı! 🚀' : 'Taslak kaydedildi ✓') : 'Güncellendi ✓');
+  } catch (e) {
+    toast('❌ ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
 }
 
 export async function buildAllInternalLinks() {
