@@ -88,6 +88,123 @@ function setEditorValue(v) {
   else document.getElementById('editContent').value = v || '';
 }
 
+// ============ Thumbnail drop zone ============
+let thumbnailDropZoneInited = false;
+
+function setThumbnailValue(url) {
+  const input = document.getElementById('editThumbnail');
+  const placeholder = document.getElementById('thumbnailPlaceholder');
+  const preview = document.getElementById('thumbnailPreview');
+  const img = document.getElementById('thumbnailImg');
+  const urlText = document.getElementById('thumbnailUrlText');
+  const clearBtn = document.getElementById('thumbnailClearBtn');
+
+  input.value = url || '';
+  if (url) {
+    img.src = url;
+    urlText.textContent = url.length > 60 ? '…' + url.slice(-60) : url;
+    placeholder.classList.add('hidden');
+    preview.classList.remove('hidden');
+    clearBtn.classList.remove('hidden');
+  } else {
+    placeholder.classList.remove('hidden');
+    preview.classList.add('hidden');
+    clearBtn.classList.add('hidden');
+  }
+}
+
+export function clearThumbnail() {
+  setThumbnailValue('');
+}
+
+async function uploadThumbnailFile(file) {
+  if (!file || !file.type.startsWith('image/')) {
+    toast('Sadece resim dosyası yüklenebilir');
+    return;
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    toast('Dosya çok büyük (max 8 MB)');
+    return;
+  }
+  const uploading = document.getElementById('thumbnailUploading');
+  uploading.classList.remove('hidden');
+  try {
+    const fd = new FormData();
+    fd.append('image', file);
+    const res = await fetch(`${API}/api/blog/upload/image`, { method: 'POST', body: fd });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    setThumbnailValue(data.url);
+    toast('Kapak görseli yüklendi ✓');
+  } catch (e) {
+    toast('❌ ' + e.message);
+  } finally {
+    uploading.classList.add('hidden');
+  }
+}
+
+function initThumbnailDropZone() {
+  if (thumbnailDropZoneInited) return;
+  const dz = document.getElementById('thumbnailDropZone');
+  const fileInput = document.getElementById('thumbnailFileInput');
+  const urlInput = document.getElementById('editThumbnail');
+  if (!dz || !fileInput) return;
+
+  dz.addEventListener('click', (e) => {
+    if (e.target.tagName === 'IMG' || e.target.id === 'thumbnailUrlText') return;
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) uploadThumbnailFile(file);
+    fileInput.value = '';
+  });
+
+  ['dragenter', 'dragover'].forEach(ev => {
+    dz.addEventListener(ev, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dz.classList.add('border-blue-500', 'bg-blue-50');
+    });
+  });
+  ['dragleave', 'drop'].forEach(ev => {
+    dz.addEventListener(ev, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dz.classList.remove('border-blue-500', 'bg-blue-50');
+    });
+  });
+  dz.addEventListener('drop', (e) => {
+    const file = e.dataTransfer.files[0];
+    if (file) uploadThumbnailFile(file);
+  });
+
+  // Paste support
+  dz.addEventListener('paste', (e) => {
+    const items = e.clipboardData?.items || [];
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) uploadThumbnailFile(file);
+        return;
+      }
+    }
+  });
+  // Make dz focusable so paste works
+  dz.setAttribute('tabindex', '0');
+
+  // URL input changes → preview
+  urlInput.addEventListener('input', () => {
+    setThumbnailValue(urlInput.value.trim());
+  });
+
+  thumbnailDropZoneInited = true;
+}
+
 export async function loadPosts() {
   try {
     const res = await fetch(`${API}/api/posts/all`);
@@ -160,12 +277,15 @@ export function newPost() {
   document.getElementById('editAuthor').value = state.currentUser?.name || '';
   document.getElementById('editExcerpt').value = '';
   setEditorValue('');
-  document.getElementById('editThumbnail').value = '';
+  setThumbnailValue('');
   document.getElementById('editPublishNow').checked = false;
   document.getElementById('editModalTitle').textContent = '✍️ Yeni Yazı';
   document.getElementById('btnSavePost').textContent = 'Kaydet';
   openModal('edit');
-  setTimeout(() => initEditor(), 50);
+  setTimeout(() => {
+    initEditor();
+    initThumbnailDropZone();
+  }, 50);
 }
 
 export async function editPost(id) {
@@ -176,13 +296,14 @@ export async function editPost(id) {
   document.getElementById('editCategory').value = post.category || 'Genel';
   document.getElementById('editAuthor').value = post.author || '';
   document.getElementById('editExcerpt').value = post.excerpt || '';
-  document.getElementById('editThumbnail').value = post.thumbnail || '';
+  setThumbnailValue(post.thumbnail || '');
   document.getElementById('editPublishNow').checked = post.status === 'published';
   document.getElementById('editModalTitle').textContent = 'Düzenle';
   document.getElementById('btnSavePost').textContent = 'Kaydet';
   openModal('edit');
   setTimeout(() => {
     initEditor();
+    initThumbnailDropZone();
     setEditorValue(post.content || '');
   }, 50);
 }
