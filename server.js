@@ -10,6 +10,7 @@ import { authRoutes } from './src/features/auth/auth.routes.js';
 import { settingsRoutes } from './src/features/settings/settings.routes.js';
 import { tenantsRoutes } from './src/features/tenants/tenants.routes.js';
 import { blogRoutes, sitemapRoutes } from './src/features/blog/blog.routes.js';
+import { createUploadRouter } from './src/features/blog/upload.routes.js';
 import { youtubeRoutes } from './src/features/youtube/youtube.routes.js';
 import { transcriptionRoutes } from './src/features/transcription/transcription.routes.js';
 import { carouselRoutes } from './src/features/carousel/carousel.routes.js';
@@ -38,6 +39,7 @@ app.use('/api/auth', authRoutes(pool));
 app.use('/api/settings', settingsRoutes(pool));
 app.use('/api/tenants', tenantsRoutes(pool));
 app.use('/api/posts', blogRoutes(pool));
+app.use('/api/blog/upload', createUploadRouter());
 app.use('/api/webhook/blog', blogRoutes(pool)); // Webhook blog uses same router
 app.use('/api/youtube', youtubeRoutes(pool, getSetting));
 

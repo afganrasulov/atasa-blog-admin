@@ -2,6 +2,92 @@
 import { API, state } from '../../shared/config.js';
 import { toast, showLoading, hideLoading, openModal, closeModal } from '../../shared/utils.js';
 
+let mde = null;
+
+function initEditor() {
+  if (mde) return mde;
+  const el = document.getElementById('editContent');
+  if (!el || typeof EasyMDE === 'undefined') return null;
+
+  mde = new EasyMDE({
+    element: el,
+    spellChecker: false,
+    autofocus: false,
+    placeholder: 'İçeriği buraya yazın. Resim sürükle-bırak veya yapıştır ile yüklenir.',
+    minHeight: '320px',
+    status: ['lines', 'words'],
+    toolbar: [
+      'bold', 'italic', 'heading', '|',
+      'quote', 'unordered-list', 'ordered-list', '|',
+      'link', 'image', 'upload-image', '|',
+      'preview', 'side-by-side', 'fullscreen', '|',
+      'guide'
+    ],
+    uploadImage: true,
+    imageMaxSize: 8 * 1024 * 1024,
+    imageAccept: 'image/jpeg, image/png, image/webp, image/gif',
+    imageTexts: {
+      sbInit: '📷 Resim sürükle-bırak, yapıştır veya tıkla.',
+      sbOnDragEnter: 'Bırak yüklensin',
+      sbOnDrop: 'Yükleniyor #images_names#',
+      sbProgress: 'Yükleniyor #file_name#: #progress#%',
+      sbOnUploaded: 'Yüklendi: #image_name#',
+      sizeUnits: ' B, KB, MB',
+    },
+    errorMessages: {
+      noFileGiven: 'Bir dosya seçmelisiniz.',
+      typeNotAllowed: 'Bu dosya türü desteklenmiyor (#image_type#).',
+      fileTooLarge: 'Dosya çok büyük: #image_size# (limit: #image_max_size#).',
+      importError: 'Yükleme hatası.',
+    },
+    imageUploadFunction: async (file, onSuccess, onError) => {
+      try {
+        const fd = new FormData();
+        fd.append('image', file);
+        const res = await fetch(`${API}/api/blog/upload/image`, { method: 'POST', body: fd });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        onSuccess(data.url);
+      } catch (e) {
+        onError(e.message);
+      }
+    },
+    previewRender: (md) => simpleMarkdownPreview(md),
+  });
+
+  return mde;
+}
+
+function simpleMarkdownPreview(md) {
+  // Lightweight preview matching atasa.tr's renderContent semantics
+  if (!md) return '<p class="text-slate-400">Önizleme boş…</p>';
+  let html = md
+    .replace(/^# (.+)$/gm, '<h2 class="text-2xl font-bold mt-6 mb-3 text-slate-900">$1</h2>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold mt-6 mb-3 text-slate-900">$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3 class="text-xl font-semibold mt-4 mb-2 text-slate-800">$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+?)\*/g, '<em>$1</em>')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="rounded-lg my-4 max-w-full">')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 underline" target="_blank">$1</a>')
+    .replace(/^[*-] (.+)$/gm, '<li class="ml-6 list-disc">$1</li>')
+    .replace(/(<li[^>]*>.*?<\/li>\n?)+/gs, (m) => `<ul class="my-2">${m}</ul>`)
+    .replace(/\n\n+/g, '</p><p class="my-3 text-slate-700 leading-relaxed">')
+    .replace(/^(?!<[hupol])(.+)$/gm, '<p class="my-3 text-slate-700 leading-relaxed">$1</p>');
+  return html;
+}
+
+function getEditorValue() {
+  return mde ? mde.value() : document.getElementById('editContent').value;
+}
+
+function setEditorValue(v) {
+  if (mde) mde.value(v || '');
+  else document.getElementById('editContent').value = v || '';
+}
+
 export async function loadPosts() {
   try {
     const res = await fetch(`${API}/api/posts/all`);
@@ -73,12 +159,13 @@ export function newPost() {
   document.getElementById('editCategory').value = 'Genel';
   document.getElementById('editAuthor').value = state.currentUser?.name || '';
   document.getElementById('editExcerpt').value = '';
-  document.getElementById('editContent').value = '';
+  setEditorValue('');
   document.getElementById('editThumbnail').value = '';
   document.getElementById('editPublishNow').checked = false;
   document.getElementById('editModalTitle').textContent = '✍️ Yeni Yazı';
   document.getElementById('btnSavePost').textContent = 'Kaydet';
   openModal('edit');
+  setTimeout(() => initEditor(), 50);
 }
 
 export async function editPost(id) {
@@ -88,19 +175,22 @@ export async function editPost(id) {
   document.getElementById('editTitle').value = post.title;
   document.getElementById('editCategory').value = post.category || 'Genel';
   document.getElementById('editAuthor').value = post.author || '';
-  document.getElementById('editContent').value = post.content || '';
   document.getElementById('editExcerpt').value = post.excerpt || '';
   document.getElementById('editThumbnail').value = post.thumbnail || '';
   document.getElementById('editPublishNow').checked = post.status === 'published';
   document.getElementById('editModalTitle').textContent = 'Düzenle';
   document.getElementById('btnSavePost').textContent = 'Kaydet';
   openModal('edit');
+  setTimeout(() => {
+    initEditor();
+    setEditorValue(post.content || '');
+  }, 50);
 }
 
 export async function savePost() {
   const id = document.getElementById('editId').value;
   const title = document.getElementById('editTitle').value.trim();
-  const content = document.getElementById('editContent').value.trim();
+  const content = getEditorValue().trim();
 
   if (!title || !content) {
     toast('Başlık ve içerik zorunlu');
