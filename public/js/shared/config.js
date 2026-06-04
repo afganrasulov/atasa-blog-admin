@@ -2,9 +2,9 @@
 export const API = ''; // Unified server — same origin
 export const YT_API = 'https://www.googleapis.com/youtube/v3';
 
-// Supabase Auth
-const SUPABASE_URL = 'https://khlvkvusavalbkjrwbsy.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtobHZrdnVzYXZhbGJranJ3YnN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MjYxODQsImV4cCI6MjA4NDQwMjE4NH0.n-e2Dy_YTyWuzvUsKNyie10H_i_X50Kv-KMAtX2c2CY';
+// Self-hosted GoTrue (Supabase Auth) on Hetzner VPS
+const SUPABASE_URL = 'https://auth.atasa.mobi';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6ImF0YXNhLXNlbGYtaG9zdGVkIiwiaWF0IjoxNzgwNTIyMjk0LCJleHAiOjIwOTU4ODIyOTR9.LsZTNpx-1xsvGRa3PxIISkc5w3KGNBdYWXDXjcDV0uI';
 
 const { createClient } = supabase;
 export const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
