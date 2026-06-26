@@ -22,7 +22,7 @@ export function createYtCallbackRouter() {
 
       const sigHeader = req.header('X-Webhook-Signature') || '';
       const provided = sigHeader.replace(/^sha256=/, '');
-      const expected = crypto.createHmac('sha256', SECRET).update(req.rawBody).digest('hex');
+      const expected = crypto.createHmac('sha256', SECRET).update(req.rawBody || '').digest('hex');
 
       if (
         provided.length !== expected.length ||
